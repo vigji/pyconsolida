@@ -1,0 +1,6 @@
+pathlib
+pandas
+openpyxl
+numpy
+tqdm
+datetime
