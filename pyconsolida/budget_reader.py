@@ -1,5 +1,11 @@
 import pandas as pd
-from pyconsolida.budget_reader_utils import fix_types, translate_df, add_tipologia_column, select_costi
+
+from pyconsolida.budget_reader_utils import (
+    add_tipologia_column,
+    fix_types,
+    select_costi,
+    translate_df,
+)
 from pyconsolida.df_utils import check_consistence, sum_selected_columns
 
 N_COLONNE = 8
@@ -7,8 +13,7 @@ TO_DROP = ["inc.%", "imp. unit."]
 
 
 def read_raw_budget_sheet(df):
-    """Legge i costi da una pagina di una singola fase del file analisi.
-    """
+    """Legge i costi da una pagina di una singola fase del file analisi."""
 
     # Traduci se necessario:
     df = translate_df(df)
@@ -33,7 +38,6 @@ def read_raw_budget_sheet(df):
 
     # Aggiungi categoria, (fase) e cantiere:
     voci_costo["tipologia"] = df_costi.loc[selection, "tipologia"].copy()
-
 
     # Qualche pulizia aggiuntiva:
     voci_costo = voci_costo[voci_costo["quantita"] > 0]  # rimuovi quantita' uguali a 0
@@ -66,10 +70,14 @@ def read_full_budget(filename, sum_fasi=True):
     is_consistent = all_fasi_concat.groupby("codice").apply(check_consistence, "voce")
 
     if not is_consistent.all():
-        print(f"descrizione voce costo non univoca per {is_consistent[~is_consistent]} nel file {filename}")
+        print(
+            f"descrizione voce costo non univoca per {is_consistent[~is_consistent]} nel file {filename}"
+        )
 
     # Somma quantita' e importo complessivo:
     if sum_fasi:
-        all_fasi_concat = sum_selected_columns(all_fasi_concat, "codice", ["quantita", "imp.comp."])
+        all_fasi_concat = sum_selected_columns(
+            all_fasi_concat, "codice", ["quantita", "imp.comp."]
+        )
 
     return all_fasi_concat

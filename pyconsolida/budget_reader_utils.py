@@ -1,32 +1,32 @@
-import pandas as pd
 import numpy as np
 
-TRASLATIONS_MAP = {"Quantità": "quantita",
-                   "Codice": "codice",
-                   "DÉPENSES": "COSTI",
-                   "Code": "codice",
-                   "coût u.": "costo u.",
-                   "coît u.": "costo u.",
-                   "Quantité": "quantita",
-                   "mont. unit.": "imp. unit.",
-                   "mont. comp.": "imp.comp.",
-                   "mont. tot.": "imp.comp."}
+TRASLATIONS_MAP = {
+    "Quantità": "quantita",
+    "Codice": "codice",
+    "DÉPENSES": "COSTI",
+    "Code": "codice",
+    "coût u.": "costo u.",
+    "coît u.": "costo u.",
+    "Quantité": "quantita",
+    "mont. unit.": "imp. unit.",
+    "mont. comp.": "imp.comp.",
+    "mont. tot.": "imp.comp.",
+}
 
-TYPES_MAP = {"costo u.": float,
-             "quantita": float,
-             "imp.comp.": float,
-             "codice": int}
+TYPES_MAP = {"costo u.": float, "quantita": float, "imp.comp.": float, "codice": int}
+
 
 def translate_df(df):
-    """Traduce le parti essenziali del file se necessario, come per la Francia.
-    """
+    """Traduce le parti essenziali del file se necessario, come per la Francia."""
 
     # Sostituisci tutte le entrate che hanno una chiave nel dizionario:
     for key, val in TRASLATIONS_MAP.items():
         df = df.where(df != key, val)
     return df
+
+
 def fix_types(df):
-    """ Assicura consistenza dei types delle colonne.
+    """Assicura consistenza dei types delle colonne.
     Modifica il dataframe in input!
     """
     for k, typ in TYPES_MAP.items():
@@ -34,8 +34,7 @@ def fix_types(df):
 
 
 def select_costi(df):
-    """Seleziona righe dello spreadsheet che si riferiscono a costi.
-    """
+    """Seleziona righe dello spreadsheet che si riferiscono a costi."""
     try:
         start_costi = np.argwhere(df.values == "COSTI")[0, 0]
     except IndexError:  # alcuni file hanno fogli vuoti tra le fasi
@@ -85,4 +84,3 @@ def add_tipologia_column(df):
         df.loc[row, "tipologia"] = current_tipologia
 
     return df
-

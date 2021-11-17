@@ -19,7 +19,9 @@ def sum_selected_columns(df, groupby_key, cols_to_sum):
     # Somma entrate da sommare:
     summed_quantities = df.groupby(groupby_key)[cols_to_sum].sum()
     # Prendi valori statici per tutti gli altri:
-    info_quantities = df.groupby(groupby_key).apply(take_voce_static_vals, exclude=cols_to_sum)
+    info_quantities = df.groupby(groupby_key).apply(
+        take_voce_static_vals, exclude=cols_to_sum
+    )
 
     return pd.concat([summed_quantities, info_quantities], axis=1)
 
