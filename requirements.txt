@@ -4,3 +4,4 @@ openpyxl
 numpy
 tqdm
 datetime
+tabulate
