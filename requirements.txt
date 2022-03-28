@@ -5,3 +5,4 @@ numpy
 tqdm
 datetime
 tabulate
+xlrd

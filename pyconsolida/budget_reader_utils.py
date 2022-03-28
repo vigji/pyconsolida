@@ -1,4 +1,5 @@
 import numpy as np
+from tabulate import tabulate
 
 TRASLATIONS_MAP = {
     "Quantità": "quantita",
@@ -34,7 +35,13 @@ def fix_types(df):
 
 
 def select_costi(df):
-    """Seleziona righe dello spreadsheet che si riferiscono a costi."""
+    """Seleziona righe dello spreadsheet che si riferiscono a costi.
+    Se il foglio è vuoto o non ha costi validi, return None.
+    """
+    if len(df) == 0:  # foglio vuoto
+        return
+    if df.values.dtype == np.float64:  # foglio non vuoto ma nessuna voce valida
+        return
     try:
         start_costi = np.argwhere(df.values == "COSTI")[0, 0]
     except IndexError:  # alcuni file hanno fogli vuoti tra le fasi

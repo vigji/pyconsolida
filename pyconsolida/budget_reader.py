@@ -1,4 +1,6 @@
+import numpy as np
 import pandas as pd
+from tabulate import tabulate
 
 from pyconsolida.budget_reader_utils import (
     add_tipologia_column,
@@ -6,10 +8,72 @@ from pyconsolida.budget_reader_utils import (
     select_costi,
     translate_df,
 )
-from pyconsolida.df_utils import check_consistence, sum_selected_columns
+from pyconsolida.df_utils import sum_selected_columns
 
 N_COLONNE = 8
 TO_DROP = ["inc.%", "imp. unit."]
+
+COLONNE_ALTERNATIVE_NAMES = {
+    "codice": [],
+    "voce": [],
+    "u.m.": [],
+    "costo u.": ["Costo unit."],
+    "quantita": ["Quantita"],
+    "imp. unit.": ["Prezzo unit."],
+    "inc.%": [],
+    "imp.comp.": ["Costo totale", "imp.comp.c."],
+    "tipologia": [],
+}
+
+
+def _aggregate(df):
+    df_out = df.iloc[0, :]
+    if len(df) > 1:
+        # print(df.loc[:, ["quantita", "imp.comp."]].sum())
+        df_out[["quantita", "imp.comp."]] = df.loc[:, ["quantita", "imp.comp."]].sum()
+    return df_out
+
+
+def _fix_colonna_name(name):
+    for k, vals in COLONNE_ALTERNATIVE_NAMES.items():
+        # Se non è richiesto nessun remapping, ritorna nome:
+        if name == k:
+            return k
+        # Altrimenti cerca nelle definizioni alternative:
+        for val in vals:
+            if name == val:
+                return k
+
+    raise ValueError(f"No map available for colonna name {name}")
+
+
+def _fix_colonne_names(colonne):
+    return [_fix_colonna_name(n) for n in colonne]
+
+
+def _diagnose_consistence(df, key):
+    if not len(set(df[key])) == 1:
+        return set(df[key])
+    else:
+        return np.nan
+
+
+def _map_consistent_voce(df, key):
+    return df[key].values[0]
+
+
+def fix_voice_consistency(df):
+    # Create report of inconsistent voices:
+    consistence_report = df.groupby("codice").apply(_diagnose_consistence, "voce")
+    consistence_report = consistence_report[
+        consistence_report.apply(lambda x: type(x) is not float)
+    ]
+
+    # Fix inconsistent voices:
+    codice_mapping = df.groupby("codice").apply(_map_consistent_voce, "voce")
+    df["voce"] = df["codice"].map(codice_mapping)
+
+    return df, consistence_report
 
 
 def read_raw_budget_sheet(df):
@@ -34,12 +98,13 @@ def read_raw_budget_sheet(df):
     # Rinomina colonne:
     colonne = df_costi.iloc[4, :N_COLONNE].values
     colonne[1] = "voce"
-    voci_costo.columns = colonne
+    voci_costo.columns = _fix_colonne_names(colonne)
 
     # Aggiungi categoria, (fase) e cantiere:
     voci_costo["tipologia"] = df_costi.loc[selection, "tipologia"].copy()
 
     # Qualche pulizia aggiuntiva:
+    # print(tabulate(voci_costo, headers="keys"))
     voci_costo = voci_costo[voci_costo["quantita"] > 0]  # rimuovi quantita' uguali a 0
     voci_costo = voci_costo.drop(TO_DROP, axis=1)  # rimuovi colonne indesiderate
 
@@ -57,6 +122,7 @@ def read_full_budget(filename, sum_fasi=True):
     all_fasi = []
     for fase, df_fase in df.items():
         costi_fase = read_raw_budget_sheet(df_fase)
+        # assert "codice" in costi_fase.columns
 
         if not sum_fasi:  # ci interessa identita' delle fasi solo se non sommiamo:
             costi_fase["fase"] = fase
@@ -66,13 +132,13 @@ def read_full_budget(filename, sum_fasi=True):
     # Aggreghiamo per cantiere per sommare voci costo identiche:
     all_fasi_concat = pd.concat(all_fasi, axis=0, ignore_index=True)
 
-    # Controlla consistenza descrizione voci di costo:
-    is_consistent = all_fasi_concat.groupby("codice").apply(check_consistence, "voce")
+    if len(all_fasi_concat) == 0:
+        raise ValueError(rf"Nessuna voce costo valida in file {filename}")
 
-    if not is_consistent.all():
-        print(
-            f"descrizione voce costo non univoca per {is_consistent[~is_consistent]} nel file {filename}"
-        )
+    # Controlla consistenza descrizione voci di costo:
+    all_fasi_concat, consistency_report = fix_voice_consistency(all_fasi_concat)
+    if len(consistency_report) > 0:
+        print(consistency_report)
 
     # Somma quantita' e importo complessivo:
     if sum_fasi:
