@@ -1,6 +1,7 @@
 pandas
 openpyxl
 numpy
+numba
 tqdm
 datetime
 tabulate
