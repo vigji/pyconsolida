@@ -1,19 +1,26 @@
 import numpy as np
-from tabulate import tabulate
 
+# Alcune celle chiave per la lettura sono state rinominate nei vari file.
+# Questo dizionario specifica delle conversioni necessarie
 TRASLATIONS_MAP = {
     "Quantità": "quantita",
+    "Quantité": "quantita",
+    "Quantita": "quantita",
     "Codice": "codice",
-    "DÉPENSES": "COSTI",
     "Code": "codice",
+    "DÉPENSES": "COSTI",
     "coût u.": "costo u.",
     "coît u.": "costo u.",
-    "Quantité": "quantita",
+    "Costo unit.": "costo u.",
     "mont. unit.": "imp. unit.",
+    "Prezzo unit.": "imp. unit.",
     "mont. comp.": "imp.comp.",
     "mont. tot.": "imp.comp.",
+    "Costo totale": "imp.comp.",
+    "imp.comp.c.": "imp.comp.",
 }
 
+# Tipi attesi dopo corretta lettura del file:
 TYPES_MAP = {"costo u.": float, "quantita": float, "imp.comp.": float, "codice": int}
 
 
@@ -36,7 +43,8 @@ def fix_types(df):
 
 def select_costi(df):
     """Seleziona righe dello spreadsheet che si riferiscono a costi.
-    Se il foglio è vuoto o non ha costi validi, return None.
+    Se il foglio è vuoto o non ha costi validi, return None - alcuni file hanno
+    fogli vuoti tra le fasi.
     """
     if len(df) == 0:  # foglio vuoto
         return
@@ -44,7 +52,7 @@ def select_costi(df):
         return
     try:
         start_costi = np.argwhere(df.values == "COSTI")[0, 0]
-    except IndexError:  # alcuni file hanno fogli vuoti tra le fasi
+    except IndexError:
         return
 
     return df.iloc[start_costi:, :].copy()
@@ -52,7 +60,7 @@ def select_costi(df):
 
 def is_tipologia_header(row):
     """Controlla se la riga corrente e' una voce o l'header di una
-    nuova tipologia di voci (Personale, "Noli", etc).
+    nuova tipologia di voci ("Personale", "Noli", etc).
     """
     if type(row.iloc[1]) is not str:
         return False

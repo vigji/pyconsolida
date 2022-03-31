@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from tabulate import tabulate
 
 from pyconsolida.budget_reader_utils import (
     add_tipologia_column,
@@ -13,18 +12,6 @@ from pyconsolida.df_utils import sum_selected_columns
 N_COLONNE = 8
 TO_DROP = ["inc.%", "imp. unit."]
 
-COLONNE_ALTERNATIVE_NAMES = {
-    "codice": [],
-    "voce": [],
-    "u.m.": [],
-    "costo u.": ["Costo unit."],
-    "quantita": ["Quantita"],
-    "imp. unit.": ["Prezzo unit."],
-    "inc.%": [],
-    "imp.comp.": ["Costo totale", "imp.comp.c."],
-    "tipologia": [],
-}
-
 
 def _aggregate(df):
     df_out = df.iloc[0, :]
@@ -32,23 +19,6 @@ def _aggregate(df):
         # print(df.loc[:, ["quantita", "imp.comp."]].sum())
         df_out[["quantita", "imp.comp."]] = df.loc[:, ["quantita", "imp.comp."]].sum()
     return df_out
-
-
-def _fix_colonna_name(name):
-    for k, vals in COLONNE_ALTERNATIVE_NAMES.items():
-        # Se non è richiesto nessun remapping, ritorna nome:
-        if name == k:
-            return k
-        # Altrimenti cerca nelle definizioni alternative:
-        for val in vals:
-            if name == val:
-                return k
-
-    raise ValueError(f"No map available for colonna name {name}")
-
-
-def _fix_colonne_names(colonne):
-    return [_fix_colonna_name(n) for n in colonne]
 
 
 def _diagnose_consistence(df, key):
@@ -98,13 +68,12 @@ def read_raw_budget_sheet(df):
     # Rinomina colonne:
     colonne = df_costi.iloc[4, :N_COLONNE].values
     colonne[1] = "voce"
-    voci_costo.columns = _fix_colonne_names(colonne)
+    voci_costo.columns = colonne
 
     # Aggiungi categoria, (fase) e cantiere:
     voci_costo["tipologia"] = df_costi.loc[selection, "tipologia"].copy()
 
     # Qualche pulizia aggiuntiva:
-    # print(tabulate(voci_costo, headers="keys"))
     voci_costo = voci_costo[voci_costo["quantita"] > 0]  # rimuovi quantita' uguali a 0
     voci_costo = voci_costo.drop(TO_DROP, axis=1)  # rimuovi colonne indesiderate
 
@@ -124,10 +93,11 @@ def read_full_budget(filename, sum_fasi=True):
         costi_fase = read_raw_budget_sheet(df_fase)
         # assert "codice" in costi_fase.columns
 
-        if not sum_fasi:  # ci interessa identita' delle fasi solo se non sommiamo:
-            costi_fase["fase"] = fase
+        if costi_fase is not None:
+            if not sum_fasi:  # ci interessa identita' delle fasi solo se non sommiamo:
+                costi_fase["fase"] = fase
 
-        all_fasi.append(costi_fase)
+            all_fasi.append(costi_fase)
 
     # Aggreghiamo per cantiere per sommare voci costo identiche:
     all_fasi_concat = pd.concat(all_fasi, axis=0, ignore_index=True)
@@ -146,4 +116,4 @@ def read_full_budget(filename, sum_fasi=True):
             all_fasi_concat, "codice", ["quantita", "imp.comp."]
         )
 
-    return all_fasi_concat
+    return all_fasi_concat, consistency_report
