@@ -30,13 +30,6 @@ def fix_types(df):
         df.loc[:, k] = df.loc[:, k].astype(typ)
 
 
-def _get_valid_costo_row(df):
-    """Localizza righe con voci costo valide in base al fatto che hanno un intero
-    nella colonna codici costo.
-    """
-    return list(map(lambda n: isinstance(n, int), df.iloc[:, CODICE_COSTO_COL]))
-
-
 def crop_costi(df):
     """Seleziona righe e colonne dello spreadsheet che si riferiscono a costi.
     Se il foglio è vuoto o non ha costi validi, return None - alcuni file hanno

@@ -4,7 +4,8 @@ from pyconsolida.budget_reader_utils import (
     add_tipologia_column,
     crop_costi,
     fix_types,
-    translate_df, fix_voice_consistency,
+    fix_voice_consistency,
+    translate_df,
 )
 from pyconsolida.df_utils import sum_selected_columns
 from pyconsolida.sheet_specs import (
@@ -24,8 +25,7 @@ def _get_valid_costo_rows(df):
 
 
 def _read_raw_budget_sheet(df):
-    """Legge i costi da una pagina di una singola fase del file analisi.
-    """
+    """Legge i costi da una pagina di una singola fase del file analisi."""
 
     # Traduci se necessario:
     df = translate_df(df)
