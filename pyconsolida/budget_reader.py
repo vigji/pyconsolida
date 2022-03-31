@@ -3,17 +3,17 @@ import pandas as pd
 
 from pyconsolida.budget_reader_utils import (
     add_tipologia_column,
-    fix_types,
     crop_costi,
+    fix_types,
     translate_df,
 )
 from pyconsolida.df_utils import sum_selected_columns
 from pyconsolida.sheet_specs import (
     CODICE_COSTO_COL,
-    N_COLONNE,
-    SKIP_COSTI_HEAD,
+    KEY_HEADERS,
+    SHEET_COL_SEQ,
+    SHEET_COL_SEQ_FASE,
     TO_AGGREGATE,
-    TO_DROP, SHEET_COL_SEQ_FASE, SHEET_COL_SEQ
 )
 
 
@@ -41,13 +41,13 @@ def fix_voice_consistency(df):
 
     return df, consistence_report
 
+
 def _get_valid_costo_row(df):
     """Localizza righe con voci costo valide in base al fatto che hanno un intero
     nella colonna codici costo.
     """
-    return list(
-        map(lambda n: isinstance(n, int), df.iloc[:, CODICE_COSTO_COL])
-    )
+    return list(map(lambda n: isinstance(n, int), df.iloc[:, CODICE_COSTO_COL]))
+
 
 def read_raw_budget_sheet(df):
     """Legge i costi da una pagina di una singola fase del file analisi."""
@@ -73,11 +73,13 @@ def read_raw_budget_sheet(df):
     colonne = list(df_costi.columns)
 
     # per come è fatto il file questa cella ha una tipologia anzichè un header:
-    colonne[1] = "voce"
+    colonne[1] = KEY_HEADERS["voce"]
     voci_costo.columns = colonne
 
     # Qualche pulizia aggiuntiva:
-    voci_costo = voci_costo[voci_costo["quantita"] > 0]  # rimuovi quantita' uguali a 0
+    voci_costo = voci_costo[
+        voci_costo[KEY_HEADERS["quantita"]] > 0
+    ]  # rimuovi quantita' uguali a 0
 
     # Conversione a float e int:
     fix_types(voci_costo)
@@ -97,7 +99,7 @@ def read_full_budget(filename, sum_fasi=True):
 
         if costi_fase is not None:
             if not sum_fasi:  # ci interessa identita' delle fasi solo se non sommiamo:
-                costi_fase["fase"] = fase
+                costi_fase[KEY_HEADERS["fase"]] = fase
 
             all_fasi.append(costi_fase)
 
@@ -114,7 +116,9 @@ def read_full_budget(filename, sum_fasi=True):
 
     # Somma quantita' e importo complessivo:
     if sum_fasi:
-        all_fasi_concat = sum_selected_columns(all_fasi_concat, "codice", TO_AGGREGATE)
+        all_fasi_concat = sum_selected_columns(
+            all_fasi_concat, KEY_HEADERS["codice"], TO_AGGREGATE
+        )
         all_fasi_concat = all_fasi_concat[SHEET_COL_SEQ]
     else:
         all_fasi_concat = all_fasi_concat[SHEET_COL_SEQ_FASE]

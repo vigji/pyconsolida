@@ -1,7 +1,14 @@
 import numpy as np
 
-from pyconsolida.sheet_specs import HEADER_TRASLATIONS_DICT, TYPES_MAP, \
-    TIPOLOGIA_IDX, N_COLONNE, SKIP_COSTI_HEAD, KEY_HEADERS, TO_DROP
+from pyconsolida.sheet_specs import (
+    HEADER_TRASLATIONS_DICT,
+    KEY_HEADERS,
+    N_COLONNE,
+    SKIP_COSTI_HEAD,
+    TIPOLOGIA_IDX,
+    TO_DROP,
+    TYPES_MAP,
+)
 
 
 def translate_df(df):
@@ -38,7 +45,9 @@ def crop_costi(df):
 
     try:
         # Trova COSTI e salta un certo numero di righe fissato
-        start_costi = np.argwhere(df.values == KEY_HEADERS["costi_start"])[0, 0] + SKIP_COSTI_HEAD
+        start_costi = (
+            np.argwhere(df.values == KEY_HEADERS["costi_start"])[0, 0] + SKIP_COSTI_HEAD
+        )
     except IndexError:
         return
 
@@ -85,7 +94,7 @@ def add_tipologia_column(df):
     """
     df = df.copy()  # lavora in copia
 
-    df["tipologia"] = ""
+    df[KEY_HEADERS["tipologia"]] = ""
 
     current_tipologia = ""  # sovrascriveremo il valore nel loop
     for row_i, row in enumerate(df.index):
@@ -93,6 +102,6 @@ def add_tipologia_column(df):
         if _is_tipologia_header(df.iloc[row_i, :]):
             current_tipologia = df.iloc[row_i, TIPOLOGIA_IDX]
 
-        df.loc[row, "tipologia"] = current_tipologia
+        df.loc[row, KEY_HEADERS["tipologia"]] = current_tipologia
 
     return df
