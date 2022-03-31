@@ -13,7 +13,7 @@ N_COLONNE = 8  # colonne da tenere nella lettura del file
 
 # Dizionario di colonne chiave del file. Lo definiamo per astrarre il valore specifico
 # delle stringhe nel caso debba mutare:
-KEY_HEADERS = {
+HEADERS = {
     "costi_start": "COSTI",
     "codice": "codice",
     "units": "u.m.",
@@ -30,14 +30,14 @@ KEY_HEADERS = {
 # Alcune celle chiave per la lettura sono state rinominate nei vari file.
 # Questo dizionario specifica delle conversioni necessarie:
 HEADER_TRASLATIONS_DICT = {
-    KEY_HEADERS["costi_start"]: ["DÉPENSES"],
-    KEY_HEADERS["codice"]: ["Codice", "Code"],
-    KEY_HEADERS["units"]: [],
-    KEY_HEADERS["costo_unit"]: ["coût u.", "coît u.", "Costo unit."],
-    KEY_HEADERS["quantita"]: ["Quantità", "Quantité", "Quantita"],
-    KEY_HEADERS["imp_unit"]: ["mont. unit.", "Prezzo unit."],
-    KEY_HEADERS["inc_perc"]: [],
-    KEY_HEADERS["imp_comp"]: [
+    HEADERS["costi_start"]: ["DÉPENSES"],
+    HEADERS["codice"]: ["Codice", "Code"],
+    HEADERS["units"]: [],
+    HEADERS["costo_unit"]: ["coût u.", "coît u.", "Costo unit."],
+    HEADERS["quantita"]: ["Quantità", "Quantité", "Quantita"],
+    HEADERS["imp_unit"]: ["mont. unit.", "Prezzo unit."],
+    HEADERS["inc_perc"]: [],
+    HEADERS["imp_comp"]: [
         "mont. comp.",
         "mont. tot.",
         "Costo totale",
@@ -52,29 +52,29 @@ EXPECTED_COLS = []
 # --------------------------------------------------------------------------------------
 # Tipi attesi dopo corretta lettura del file:
 TYPES_MAP = {
-    KEY_HEADERS["costo_unit"]: float,
-    KEY_HEADERS["quantita"]: float,
-    KEY_HEADERS["imp_comp"]: float,
-    KEY_HEADERS["codice"]: int,
+    HEADERS["costo_unit"]: float,
+    HEADERS["quantita"]: float,
+    HEADERS["imp_comp"]: float,
+    HEADERS["codice"]: int,
 }
 
 # --------------------------------------------------------------------------------------
 # Formattazione output
 # --------------------------------------------------------------------------------------
 # Valori da aggregare se si somma sulle fasi:
-TO_AGGREGATE = [KEY_HEADERS["quantita"], KEY_HEADERS["imp_comp"]]
-TO_DROP = [KEY_HEADERS["inc_perc"], KEY_HEADERS["imp_unit"]]
+TO_AGGREGATE = [HEADERS["quantita"], HEADERS["imp_comp"]]
+TO_DROP = [HEADERS["inc_perc"], HEADERS["imp_unit"]]
 
 SHEET_COL_SEQ = [
-    KEY_HEADERS["codice"],
-    KEY_HEADERS["tipologia"],
-    KEY_HEADERS["voce"],
-    KEY_HEADERS["units"],
-    KEY_HEADERS["quantita"],
-    KEY_HEADERS["costo_unit"],
-    KEY_HEADERS["imp_comp"],
+    HEADERS["codice"],
+    HEADERS["tipologia"],
+    HEADERS["voce"],
+    HEADERS["units"],
+    HEADERS["quantita"],
+    HEADERS["costo_unit"],
+    HEADERS["imp_comp"],
 ]
 
 SHEET_COL_SEQ_FASE = [
-    KEY_HEADERS["fase"],
+    HEADERS["fase"],
 ] + SHEET_COL_SEQ

@@ -1,4 +1,3 @@
-pathlib
 pandas
 openpyxl
 numpy

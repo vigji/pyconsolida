@@ -10,7 +10,7 @@ from pyconsolida.budget_reader_utils import (
 from pyconsolida.df_utils import sum_selected_columns
 from pyconsolida.sheet_specs import (
     CODICE_COSTO_COL,
-    KEY_HEADERS,
+    HEADERS,
     SHEET_COL_SEQ,
     SHEET_COL_SEQ_FASE,
     TO_AGGREGATE,
@@ -69,17 +69,8 @@ def read_raw_budget_sheet(df):
 
     voci_costo = df_costi.iloc[selection, :].copy()
 
-    # Trova headers delle colonne a un certo indice dalla voce "COSTI":
-    colonne = list(df_costi.columns)
-
-    # per come è fatto il file questa cella ha una tipologia anzichè un header:
-    colonne[1] = KEY_HEADERS["voce"]
-    voci_costo.columns = colonne
-
-    # Qualche pulizia aggiuntiva:
-    voci_costo = voci_costo[
-        voci_costo[KEY_HEADERS["quantita"]] > 0
-    ]  # rimuovi quantita' uguali a 0
+    # Rimuovi quantita' uguali a 0
+    voci_costo = voci_costo[voci_costo[HEADERS["quantita"]] > 0]
 
     # Conversione a float e int:
     fix_types(voci_costo)
@@ -99,7 +90,7 @@ def read_full_budget(filename, sum_fasi=True):
 
         if costi_fase is not None:
             if not sum_fasi:  # ci interessa identita' delle fasi solo se non sommiamo:
-                costi_fase[KEY_HEADERS["fase"]] = fase
+                costi_fase[HEADERS["fase"]] = fase
 
             all_fasi.append(costi_fase)
 
@@ -117,7 +108,7 @@ def read_full_budget(filename, sum_fasi=True):
     # Somma quantita' e importo complessivo:
     if sum_fasi:
         all_fasi_concat = sum_selected_columns(
-            all_fasi_concat, KEY_HEADERS["codice"], TO_AGGREGATE
+            all_fasi_concat, HEADERS["codice"], TO_AGGREGATE
         )
         all_fasi_concat = all_fasi_concat[SHEET_COL_SEQ]
     else:
