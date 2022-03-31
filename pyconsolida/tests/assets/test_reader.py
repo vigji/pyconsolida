@@ -1,8 +1,9 @@
-import pytest
 import flammkuchen as fl
+import pytest
 from pandas.testing import assert_frame_equal
 
 from pyconsolida.budget_reader import read_full_budget
+
 
 @pytest.mark.parametrize("sum_fasi", [True, False])
 def test_budget_reader(assets_folder, sum_fasi):

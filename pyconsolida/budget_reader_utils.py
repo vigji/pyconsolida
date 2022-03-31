@@ -1,14 +1,16 @@
 import numpy as np
 
-from pyconsolida.sheet_specs import TRASLATIONS_MAP, TYPES_MAP
+from pyconsolida.sheet_specs import HEADER_TRASLATIONS_DICT, TYPES_MAP
 
 
 def translate_df(df):
-    """Traduce le parti essenziali del file se necessario, come per la Francia."""
+    """Traduce le parti essenziali del file se necessario, come per la Francia,
+    o gli eventuali header cambiati.
+    """
 
-    # Sostituisci tutte le entrate che hanno una chiave nel dizionario:
-    for key, val in TRASLATIONS_MAP.items():
-        df = df.where(df != key, val)
+    for key, vals in HEADER_TRASLATIONS_DICT.items():
+        for val in vals:
+            df = df.where(df != val, key)
     return df
 
 
@@ -25,10 +27,14 @@ def select_costi(df):
     Se il foglio è vuoto o non ha costi validi, return None - alcuni file hanno
     fogli vuoti tra le fasi.
     """
-    if len(df) == 0:  # foglio vuoto
+    # Foglio vuoto:
+    if len(df) == 0:
         return
-    if df.values.dtype == np.float64:  # foglio non vuoto ma nessuna voce valida
+
+    # Foglio non vuoto ma nessuna voce valida (letto con nans):
+    if df.values.dtype == np.float64:
         return
+
     try:
         start_costi = np.argwhere(df.values == "COSTI")[0, 0]
     except IndexError:

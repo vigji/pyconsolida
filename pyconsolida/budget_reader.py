@@ -8,7 +8,13 @@ from pyconsolida.budget_reader_utils import (
     translate_df,
 )
 from pyconsolida.df_utils import sum_selected_columns
-from pyconsolida.sheet_specs import N_COLONNE, TO_DROP, TO_AGGREGATE
+from pyconsolida.sheet_specs import (
+    CODICE_COSTO_COL,
+    N_COLONNE,
+    SKIP_FOR_HEADERS,
+    TO_AGGREGATE,
+    TO_DROP,
+)
 
 
 def _diagnose_consistence(df, key):
@@ -52,11 +58,13 @@ def read_raw_budget_sheet(df):
     df_costi = add_tipologia_column(df_costi)
 
     # Seleziona righe con un codice costo valido:
-    selection = list(map(lambda n: isinstance(n, int), df_costi.iloc[:, 0]))
+    selection = list(
+        map(lambda n: isinstance(n, int), df_costi.iloc[:, CODICE_COSTO_COL])
+    )
     voci_costo = df_costi.iloc[selection, :N_COLONNE].copy()
 
     # Rinomina colonne:
-    colonne = df_costi.iloc[4, :N_COLONNE].values
+    colonne = df_costi.iloc[SKIP_FOR_HEADERS, :N_COLONNE].values
     colonne[1] = "voce"
     voci_costo.columns = colonne
 
@@ -102,8 +110,6 @@ def read_full_budget(filename, sum_fasi=True):
 
     # Somma quantita' e importo complessivo:
     if sum_fasi:
-        all_fasi_concat = sum_selected_columns(
-            all_fasi_concat, "codice", TO_AGGREGATE
-        )
+        all_fasi_concat = sum_selected_columns(all_fasi_concat, "codice", TO_AGGREGATE)
 
     return all_fasi_concat, consistency_report

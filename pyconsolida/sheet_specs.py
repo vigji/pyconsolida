@@ -6,10 +6,23 @@ e il formatting dell'output.
 # Specificazioni foglio di input
 # --------------------------------------------------------------------------------------
 
-N_COLONNE = 8  # Colonne da tenere nella lettura del file
+CODICE_COSTO_COL = 0  # indice colonna con codice costo
+SKIP_FOR_HEADERS = 4  # indice di riga sotto casella "COSTI" a cui leggere gli headers
+N_COLONNE = 8  # colonne da tenere nella lettura del file
 
 # Alcune celle chiave per la lettura sono state rinominate nei vari file.
-# Questo dizionario specifica delle conversioni necessarie
+# Questo dizionario specifica delle conversioni necessarie:
+HEADER_TRASLATIONS_DICT = {
+    "COSTI": ["DÉPENSES"],
+    "codice": ["Codice", "Code"],
+    "u.m.": [],
+    "costo u.": ["coût u.", "coît u.", "Costo unit."],
+    "quantita": ["Quantità", "Quantité", "Quantita"],
+    "imp. unit.": ["mont. unit.", "Prezzo unit."],
+    "inc.%": [],
+    "imp.comp.": ["mont. comp.", "mont. tot.", "Costo totale", "imp.comp.c."],
+}
+
 TRASLATIONS_MAP = {
     "Quantità": "quantita",
     "Quantité": "quantita",

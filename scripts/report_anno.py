@@ -1,11 +1,11 @@
 from datetime import datetime
 from pathlib import Path
 
-from tqdm import tqdm
 import pandas as pd
+from tqdm import tqdm
 
-from pyconsolida.posthoc_fix_utils import fix_tipologie_df
 from pyconsolida.budget_reader import read_full_budget, sum_selected_columns
+from pyconsolida.posthoc_fix_utils import fix_tipologie_df
 
 
 def find_all_files(path):
