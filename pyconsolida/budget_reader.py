@@ -4,16 +4,16 @@ import pandas as pd
 from pyconsolida.budget_reader_utils import (
     add_tipologia_column,
     fix_types,
-    select_costi,
+    crop_costi,
     translate_df,
 )
 from pyconsolida.df_utils import sum_selected_columns
 from pyconsolida.sheet_specs import (
     CODICE_COSTO_COL,
     N_COLONNE,
-    SKIP_FOR_HEADERS,
+    SKIP_COSTI_HEAD,
     TO_AGGREGATE,
-    TO_DROP,
+    TO_DROP, SHEET_COL_SEQ_FASE, SHEET_COL_SEQ
 )
 
 
@@ -41,6 +41,13 @@ def fix_voice_consistency(df):
 
     return df, consistence_report
 
+def _get_valid_costo_row(df):
+    """Localizza righe con voci costo valide in base al fatto che hanno un intero
+    nella colonna codici costo.
+    """
+    return list(
+        map(lambda n: isinstance(n, int), df.iloc[:, CODICE_COSTO_COL])
+    )
 
 def read_raw_budget_sheet(df):
     """Legge i costi da una pagina di una singola fase del file analisi."""
@@ -49,7 +56,7 @@ def read_raw_budget_sheet(df):
     df = translate_df(df)
 
     # Trova l'inizio delle righe costi, e return se non ce ne sono:
-    df_costi = select_costi(df)
+    df_costi = crop_costi(df)
 
     if df_costi is None:
         return
@@ -58,22 +65,19 @@ def read_raw_budget_sheet(df):
     df_costi = add_tipologia_column(df_costi)
 
     # Seleziona righe con un codice costo valido:
-    selection = list(
-        map(lambda n: isinstance(n, int), df_costi.iloc[:, CODICE_COSTO_COL])
-    )
-    voci_costo = df_costi.iloc[selection, :N_COLONNE].copy()
+    selection = _get_valid_costo_row(df_costi)
 
-    # Rinomina colonne:
-    colonne = df_costi.iloc[SKIP_FOR_HEADERS, :N_COLONNE].values
+    voci_costo = df_costi.iloc[selection, :].copy()
+
+    # Trova headers delle colonne a un certo indice dalla voce "COSTI":
+    colonne = list(df_costi.columns)
+
+    # per come è fatto il file questa cella ha una tipologia anzichè un header:
     colonne[1] = "voce"
     voci_costo.columns = colonne
 
-    # Aggiungi categoria, (fase) e cantiere:
-    voci_costo["tipologia"] = df_costi.loc[selection, "tipologia"].copy()
-
     # Qualche pulizia aggiuntiva:
     voci_costo = voci_costo[voci_costo["quantita"] > 0]  # rimuovi quantita' uguali a 0
-    voci_costo = voci_costo.drop(TO_DROP, axis=1)  # rimuovi colonne indesiderate
 
     # Conversione a float e int:
     fix_types(voci_costo)
@@ -111,5 +115,8 @@ def read_full_budget(filename, sum_fasi=True):
     # Somma quantita' e importo complessivo:
     if sum_fasi:
         all_fasi_concat = sum_selected_columns(all_fasi_concat, "codice", TO_AGGREGATE)
+        all_fasi_concat = all_fasi_concat[SHEET_COL_SEQ]
+    else:
+        all_fasi_concat = all_fasi_concat[SHEET_COL_SEQ_FASE]
 
     return all_fasi_concat, consistency_report

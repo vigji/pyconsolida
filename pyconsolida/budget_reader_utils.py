@@ -1,6 +1,7 @@
 import numpy as np
 
-from pyconsolida.sheet_specs import HEADER_TRASLATIONS_DICT, TYPES_MAP
+from pyconsolida.sheet_specs import HEADER_TRASLATIONS_DICT, TYPES_MAP, \
+    TIPOLOGIA_IDX, N_COLONNE, SKIP_COSTI_HEAD, KEY_HEADERS, TO_DROP
 
 
 def translate_df(df):
@@ -22,8 +23,8 @@ def fix_types(df):
         df.loc[:, k] = df.loc[:, k].astype(typ)
 
 
-def select_costi(df):
-    """Seleziona righe dello spreadsheet che si riferiscono a costi.
+def crop_costi(df):
+    """Seleziona righe e colonne dello spreadsheet che si riferiscono a costi.
     Se il foglio è vuoto o non ha costi validi, return None - alcuni file hanno
     fogli vuoti tra le fasi.
     """
@@ -36,14 +37,22 @@ def select_costi(df):
         return
 
     try:
-        start_costi = np.argwhere(df.values == "COSTI")[0, 0]
+        # Trova COSTI e salta un certo numero di righe fissato
+        start_costi = np.argwhere(df.values == KEY_HEADERS["costi_start"])[0, 0] + SKIP_COSTI_HEAD
     except IndexError:
         return
 
-    return df.iloc[start_costi:, :].copy()
+    # Setta la prima riga come header:
+    cropped_df = df.iloc[start_costi:, :N_COLONNE].copy()
+    cropped_df.columns = cropped_df.iloc[0, :]
+
+    # Rimuovi colonne indesiderate
+    cropped_df = cropped_df.drop(TO_DROP, axis=1)
+
+    return cropped_df
 
 
-def is_tipologia_header(row):
+def _is_tipologia_header(row):
     """Controlla se la riga corrente e' una voce o l'header di una
     nuova tipologia di voci ("Personale", "Noli", etc).
     """
@@ -51,7 +60,7 @@ def is_tipologia_header(row):
         return False
 
     if type(row.iloc[2]) is str:
-        if row.iloc[2] != "u.m.":
+        if row.iloc[2] != KEY_HEADERS["units"]:
             return False
     else:
         if not np.isnan(row.iloc[2]):
@@ -61,7 +70,8 @@ def is_tipologia_header(row):
 
 
 def add_tipologia_column(df):
-    """Aggiunge una colonna con la tipologia di costo (manodopera, materiale d'opera, etc.).
+    """Aggiunge una colonna con la tipologia di costo (manodopera, materiale d'opera,
+    etc.).
 
     Parameters
     ----------
@@ -73,13 +83,15 @@ def add_tipologia_column(df):
         Con la colonna "tipologia" aggiunta
 
     """
-    current_tipologia = ""
-    df = df.copy()  # work on a copy
+    df = df.copy()  # lavora in copia
 
     df["tipologia"] = ""
+
+    current_tipologia = ""  # sovrascriveremo il valore nel loop
     for row_i, row in enumerate(df.index):
-        if is_tipologia_header(df.iloc[row_i, :]):
-            current_tipologia = df.iloc[row_i, 1]
+        # Se c'è una nuova tipologia, aggiorna current_tipologia:
+        if _is_tipologia_header(df.iloc[row_i, :]):
+            current_tipologia = df.iloc[row_i, TIPOLOGIA_IDX]
 
         df.loc[row, "tipologia"] = current_tipologia
 
