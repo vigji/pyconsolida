@@ -30,6 +30,13 @@ def fix_types(df):
         df.loc[:, k] = df.loc[:, k].astype(typ)
 
 
+def _get_valid_costo_row(df):
+    """Localizza righe con voci costo valide in base al fatto che hanno un intero
+    nella colonna codici costo.
+    """
+    return list(map(lambda n: isinstance(n, int), df.iloc[:, CODICE_COSTO_COL]))
+
+
 def crop_costi(df):
     """Seleziona righe e colonne dello spreadsheet che si riferiscono a costi.
     Se il foglio è vuoto o non ha costi validi, return None - alcuni file hanno
@@ -111,3 +118,28 @@ def add_tipologia_column(df):
         df.loc[row, HEADERS["tipologia"]] = current_tipologia
 
     return df
+
+
+def _diagnose_consistence(df, key):
+    if not len(set(df[key])) == 1:
+        return set(df[key])
+    else:
+        return np.nan
+
+
+def _map_consistent_voce(df, key):
+    return df[key].values[0]
+
+
+def fix_voice_consistency(df):
+    # Create report of inconsistent voices:
+    consistence_report = df.groupby("codice").apply(_diagnose_consistence, "voce")
+    consistence_report = consistence_report[
+        consistence_report.apply(lambda x: type(x) is not float)
+    ]
+
+    # Fix inconsistent voices:
+    codice_mapping = df.groupby("codice").apply(_map_consistent_voce, "voce")
+    df["voce"] = df["codice"].map(codice_mapping)
+
+    return df, consistence_report

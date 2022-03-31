@@ -1,11 +1,10 @@
-import numpy as np
 import pandas as pd
 
 from pyconsolida.budget_reader_utils import (
     add_tipologia_column,
     crop_costi,
     fix_types,
-    translate_df,
+    translate_df, fix_voice_consistency,
 )
 from pyconsolida.df_utils import sum_selected_columns
 from pyconsolida.sheet_specs import (
@@ -17,40 +16,16 @@ from pyconsolida.sheet_specs import (
 )
 
 
-def _diagnose_consistence(df, key):
-    if not len(set(df[key])) == 1:
-        return set(df[key])
-    else:
-        return np.nan
-
-
-def _map_consistent_voce(df, key):
-    return df[key].values[0]
-
-
-def fix_voice_consistency(df):
-    # Create report of inconsistent voices:
-    consistence_report = df.groupby("codice").apply(_diagnose_consistence, "voce")
-    consistence_report = consistence_report[
-        consistence_report.apply(lambda x: type(x) is not float)
-    ]
-
-    # Fix inconsistent voices:
-    codice_mapping = df.groupby("codice").apply(_map_consistent_voce, "voce")
-    df["voce"] = df["codice"].map(codice_mapping)
-
-    return df, consistence_report
-
-
-def _get_valid_costo_row(df):
+def _get_valid_costo_rows(df):
     """Localizza righe con voci costo valide in base al fatto che hanno un intero
     nella colonna codici costo.
     """
     return list(map(lambda n: isinstance(n, int), df.iloc[:, CODICE_COSTO_COL]))
 
 
-def read_raw_budget_sheet(df):
-    """Legge i costi da una pagina di una singola fase del file analisi."""
+def _read_raw_budget_sheet(df):
+    """Legge i costi da una pagina di una singola fase del file analisi.
+    """
 
     # Traduci se necessario:
     df = translate_df(df)
@@ -65,7 +40,7 @@ def read_raw_budget_sheet(df):
     df_costi = add_tipologia_column(df_costi)
 
     # Seleziona righe con un codice costo valido:
-    selection = _get_valid_costo_row(df_costi)
+    selection = _get_valid_costo_rows(df_costi)
 
     voci_costo = df_costi.iloc[selection, :].copy()
 
@@ -85,8 +60,7 @@ def read_full_budget(filename, sum_fasi=True):
     # Cicla su tutti i fogli del file per leggere le fasi:
     all_fasi = []
     for fase, df_fase in df.items():
-        costi_fase = read_raw_budget_sheet(df_fase)
-        # assert "codice" in costi_fase.columns
+        costi_fase = _read_raw_budget_sheet(df_fase)
 
         if costi_fase is not None:
             if not sum_fasi:  # ci interessa identita' delle fasi solo se non sommiamo:
@@ -102,8 +76,6 @@ def read_full_budget(filename, sum_fasi=True):
 
     # Controlla consistenza descrizione voci di costo:
     all_fasi_concat, consistency_report = fix_voice_consistency(all_fasi_concat)
-    if len(consistency_report) > 0:
-        print(consistency_report)
 
     # Somma quantita' e importo complessivo:
     if sum_fasi:

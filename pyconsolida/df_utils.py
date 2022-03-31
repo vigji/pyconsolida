@@ -20,13 +20,13 @@ def sum_selected_columns(df, groupby_key, cols_to_sum):
     summed_quantities = df.groupby(groupby_key)[cols_to_sum].sum()
     # Prendi valori statici per tutti gli altri:
     info_quantities = df.groupby(groupby_key).apply(
-        take_voce_static_vals, exclude=cols_to_sum
+        _take_voce_static_vals, exclude=cols_to_sum
     )
 
     return pd.concat([summed_quantities, info_quantities], axis=1)
 
 
-def take_voce_static_vals(df, exclude=None):
+def _take_voce_static_vals(df, exclude=None):
     """Prende le info statiche (tutte salvo quantita' e importo complessivo)
     relative alla voce costo, selezionando i valori della prima riga del dataframe.
     Da usare sul dataframe aggregato per codice costo.
