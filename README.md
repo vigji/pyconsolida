@@ -1,4 +1,7 @@
 # pyconsolida
+[![tests](https://github.com/vigji/pyconsolida/actions/workflows/main.yml/badge.svg)](https://github.com/vigji/pyconsolida/actions/workflows/main.yml)
+[![Coverage Status](https://coveralls.io/repos/github/vigji/pyconsolida/badge.svg?branch=main)](https://coveralls.io/github/vigji/pyconsolida?branch=main)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 Aggregatore dati da budget cantiere I.CO.P.
 
 ## Organizzazione
