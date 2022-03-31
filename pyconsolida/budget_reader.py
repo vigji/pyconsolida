@@ -8,17 +8,7 @@ from pyconsolida.budget_reader_utils import (
     translate_df,
 )
 from pyconsolida.df_utils import sum_selected_columns
-
-N_COLONNE = 8
-TO_DROP = ["inc.%", "imp. unit."]
-
-
-def _aggregate(df):
-    df_out = df.iloc[0, :]
-    if len(df) > 1:
-        # print(df.loc[:, ["quantita", "imp.comp."]].sum())
-        df_out[["quantita", "imp.comp."]] = df.loc[:, ["quantita", "imp.comp."]].sum()
-    return df_out
+from pyconsolida.sheet_specs import N_COLONNE, TO_DROP, TO_AGGREGATE
 
 
 def _diagnose_consistence(df, key):
@@ -113,7 +103,7 @@ def read_full_budget(filename, sum_fasi=True):
     # Somma quantita' e importo complessivo:
     if sum_fasi:
         all_fasi_concat = sum_selected_columns(
-            all_fasi_concat, "codice", ["quantita", "imp.comp."]
+            all_fasi_concat, "codice", TO_AGGREGATE
         )
 
     return all_fasi_concat, consistency_report

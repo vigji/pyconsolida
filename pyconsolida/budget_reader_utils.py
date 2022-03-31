@@ -1,27 +1,6 @@
 import numpy as np
 
-# Alcune celle chiave per la lettura sono state rinominate nei vari file.
-# Questo dizionario specifica delle conversioni necessarie
-TRASLATIONS_MAP = {
-    "Quantità": "quantita",
-    "Quantité": "quantita",
-    "Quantita": "quantita",
-    "Codice": "codice",
-    "Code": "codice",
-    "DÉPENSES": "COSTI",
-    "coût u.": "costo u.",
-    "coît u.": "costo u.",
-    "Costo unit.": "costo u.",
-    "mont. unit.": "imp. unit.",
-    "Prezzo unit.": "imp. unit.",
-    "mont. comp.": "imp.comp.",
-    "mont. tot.": "imp.comp.",
-    "Costo totale": "imp.comp.",
-    "imp.comp.c.": "imp.comp.",
-}
-
-# Tipi attesi dopo corretta lettura del file:
-TYPES_MAP = {"costo u.": float, "quantita": float, "imp.comp.": float, "codice": int}
+from pyconsolida.sheet_specs import TRASLATIONS_MAP, TYPES_MAP
 
 
 def translate_df(df):
