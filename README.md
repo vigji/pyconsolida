@@ -3,25 +3,25 @@
 [![Coverage Status](https://coveralls.io/repos/github/vigji/pyconsolida/badge.svg?branch=main)](https://coveralls.io/github/vigji/pyconsolida?branch=main)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 
-Aggregatore dati da budget cantiere I.CO.P.
+Automatic data parsing from construction sites budgets to raw material usage lists
 
-## Organizzazione
- - Il modulo `pyconsolida` contiene utility functions per leggere e aggiustare file, per ora analisi.xlsx con budget di cantiere;
- - La cartella `scripts` contiene gli script da eseguire per effettuare conversioni.
+## Contents
+ - The `pyconsolida` module contains utility functions to read and lint the files (for now `analisi.xlsx` with the construction site budget)
+ - `scripts` contains the scripts to run for the conversions
 
 
-## Installazione
-Per installare ed eseguire, lonare la repo con 
+## Installation & instructions:
+To install, first clone the repo
 ```
 git clone https://github.com/vigji/pyconsolida
 ```
-Navigare da terminale fino alla repo e installare: 
+Browse from terminal to the folder and type:
 ```bash
 cd pyconsolida
 pip install -e .
 ```
-Per runnare scripts, 
+To run the scripts:
 ```bash
 cd scripts
-python nome_script.py
+python ....py
 ```
