@@ -8,6 +8,7 @@ from pyconsolida.budget_reader import read_full_budget, sum_selected_columns
 from pyconsolida.posthoc_fix_utils import fix_tipologie_df
 
 
+# TODO sort those out in modules:
 def find_all_files(path):
     PATTERNS = ["*nalis*", "*RO-RO*", "*ACC.QUADRO*", "*SPE_GENE*", "*SPE_BRANCH*"]
     possible_files = []

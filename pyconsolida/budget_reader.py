@@ -45,10 +45,9 @@ def _read_raw_budget_sheet(df):
     voci_costo = df_costi.iloc[selection, :].copy()
 
     # Rimuovi quantita' uguali a 0
-    voci_costo = voci_costo[voci_costo[HEADERS["quantita"]] > 0]
-
     # Conversione a float e int:
     fix_types(voci_costo)
+    voci_costo = voci_costo[voci_costo[HEADERS["quantita"]] > 0]
 
     return voci_costo
 
@@ -60,7 +59,15 @@ def read_full_budget(filename, sum_fasi=True):
     # Cicla su tutti i fogli del file per leggere le fasi:
     all_fasi = []
     for fase, df_fase in df.items():
-        costi_fase = _read_raw_budget_sheet(df_fase)
+        try:
+            costi_fase = _read_raw_budget_sheet(df_fase)
+        except (KeyError, TypeError, ValueError):
+
+            raise RuntimeError(
+                f"Problem while analyzing fase '{fase}' of file '{filename}'"
+            )
+            # to debug you can use notebook.
+            # Common problems are: 1. Leftovers on the gray lower part of the sheet; 2. typos replacing labels with eg numbers.from
 
         if costi_fase is not None:
             if not sum_fasi:  # ci interessa identita' delle fasi solo se non sommiamo:

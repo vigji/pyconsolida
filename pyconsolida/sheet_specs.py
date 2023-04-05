@@ -42,6 +42,7 @@ HEADER_TRASLATIONS_DICT = {
         "mont. tot.",
         "Costo totale",
         "imp.comp.c.",
+        "imp.comp. c.",
     ],
 }
 

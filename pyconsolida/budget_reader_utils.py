@@ -23,8 +23,8 @@ def translate_df(df):
 
 
 def fix_types(df):
-    """Assicura consistenza dei types delle colonne.
-    Modifica il dataframe in input!
+    """Ensures consistency of data types of all columns.
+    It changes the input inplace!!
     """
     for k, typ in TYPES_MAP.items():
         df.loc[:, k] = df.loc[:, k].astype(typ)
