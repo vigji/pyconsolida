@@ -59,21 +59,23 @@ def read_full_budget(filename, sum_fasi=True):
     # Cicla su tutti i fogli del file per leggere le fasi:
     all_fasi = []
     for fase, df_fase in df.items():
-        try:
-            costi_fase = _read_raw_budget_sheet(df_fase)
-        except (KeyError, TypeError, ValueError):
+        if fase not in ["0-SIT&PROG(2022-24)_", "0-SIT&PROG(2022-24)_prova"]:
+            try:
+                costi_fase = _read_raw_budget_sheet(df_fase)
+            except (KeyError, TypeError, ValueError):
+                raise RuntimeError(
+                    f"Problem while analyzing fase '{fase}' of file '{filename}'"
+                )
+                # to debug you can use notebook.
+                # Common problems are: 1. Leftovers on the gray lower part of the sheet; 2. typos replacing labels with eg numbers.from
 
-            raise RuntimeError(
-                f"Problem while analyzing fase '{fase}' of file '{filename}'"
-            )
-            # to debug you can use notebook.
-            # Common problems are: 1. Leftovers on the gray lower part of the sheet; 2. typos replacing labels with eg numbers.from
+            if costi_fase is not None:
+                if (
+                    not sum_fasi
+                ):  # ci interessa identita' delle fasi solo se non sommiamo:
+                    costi_fase[HEADERS["fase"]] = fase
 
-        if costi_fase is not None:
-            if not sum_fasi:  # ci interessa identita' delle fasi solo se non sommiamo:
-                costi_fase[HEADERS["fase"]] = fase
-
-            all_fasi.append(costi_fase)
+                all_fasi.append(costi_fase)
 
     # Aggreghiamo per cantiere per sommare voci costo identiche:
     all_fasi_concat = pd.concat(all_fasi, axis=0, ignore_index=True)

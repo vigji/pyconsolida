@@ -56,6 +56,7 @@ TYPES_MAP = {
     HEADERS["costo_unit"]: float,
     HEADERS["quantita"]: float,
     HEADERS["imp_comp"]: float,
+    HEADERS["imp_unit"]: float,
     HEADERS["codice"]: int,
 }
 
@@ -64,15 +65,16 @@ TYPES_MAP = {
 # --------------------------------------------------------------------------------------
 # Valori da aggregare se si somma sulle fasi:
 TO_AGGREGATE = [HEADERS["quantita"], HEADERS["imp_comp"]]
-TO_DROP = [HEADERS["inc_perc"], HEADERS["imp_unit"]]
+TO_DROP = [HEADERS["inc_perc"]]  # , HEADERS["imp_unit"]]
 
 SHEET_COL_SEQ = [
     HEADERS["codice"],
     HEADERS["tipologia"],
     HEADERS["voce"],
+    HEADERS["costo_unit"],
     HEADERS["units"],
     HEADERS["quantita"],
-    HEADERS["costo_unit"],
+    HEADERS["imp_unit"],
     HEADERS["imp_comp"],
 ]
 

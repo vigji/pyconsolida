@@ -45,9 +45,13 @@ def crop_costi(df):
 
     try:
         # Trova COSTI e salta un certo numero di righe fissato
-        start_costi = (
-            np.argwhere(df.values == HEADERS["costi_start"])[0, 0] + SKIP_COSTI_HEAD
-        )
+        costi_cells = np.argwhere(df.values == HEADERS["costi_start"])
+        if (
+            costi_cells.shape[0] > 1
+        ):  # Found at least 1 funny case of a duplicated COSTI row, invisible in the xls file
+            print("File with ambiguous COSTI start definition")
+        start_costi = costi_cells[-1, 0]
+        start_costi += SKIP_COSTI_HEAD  # skip predefined number of rows from "COSTI"
     except IndexError:
         return
 

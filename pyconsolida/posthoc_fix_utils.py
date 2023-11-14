@@ -115,7 +115,6 @@ def isinlist(
     se_non_contiene_key="e non contiene",
     se_tipologia_key="da",
 ):
-
     return _isinlist(
         format_to_check(input_df[voce_key]),
         format_to_check(input_df[tipologia_key]),

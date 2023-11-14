@@ -15,9 +15,14 @@ from pyconsolida.budget_reader import read_full_budget, sum_selected_columns
 from pyconsolida.posthoc_fix_utils import fix_tipologie_df
 
 DIRECTORY = Path("/Users/vigji/Desktop/icop")
-YEAR = 2022
+YEAR = 2023
+SUM_FASI = False
+dest_dir = DIRECTORY / f"exported_luigi_sum-fasi-{SUM_FASI}"
 
-dest_dir = DIRECTORY / "exported_luigi"
+fl.save(
+    "deleteme.h5",
+    dict(budgets_dec=[1, 2, 3, 4], budgets=1),
+)
 
 # sequence of keys in the final table:
 key_sequence = [
@@ -25,11 +30,14 @@ key_sequence = [
     "codice",
     "tipologia",
     "voce",
+    "costo u.",
     "u.m.",
     "quantita",
-    "costo u.",
+    "imp. unit.",
     "imp.comp.",
 ]
+if not SUM_FASI:
+    key_sequence.insert(1, "fase")
 
 # IDs of works to exclude:
 to_exclude = ["4004", "9981", "1360", "1445"]
@@ -55,7 +63,7 @@ def find_all_files(path):
     return possible_files
 
 
-def read_all_valid_budgets(path, sum_fasi=True):
+def read_all_valid_budgets(path, sum_fasi):
     """Read valid budget files from a folder.
 
     Parameters
@@ -75,6 +83,7 @@ def read_all_valid_budgets(path, sum_fasi=True):
     reports = []
     for file in files:
         fasi, cons_report = read_full_budget(file, sum_fasi=sum_fasi)
+        # print(fasi.columns)
         loaded.append(fasi)
         if len(cons_report) > 0:
             reports.append(pd.DataFrame(cons_report))
@@ -101,15 +110,17 @@ def _load_loop_and_concat(
     budgets = []
     reports = []
     for folder in tqdm(folders):
-        budget, rep = read_all_valid_budgets(folder, sum_fasi=True)
+        budget, rep = read_all_valid_budgets(folder, sum_fasi=SUM_FASI)
         if rep is not None:
             rep["anno"] = f"{YEAR}"
             reports.append(rep)
         # Somma quantita' e importo complessivo, lo facciamo qui perchè mettiamo assieme
         # piu fasi:
-        budget = sum_selected_columns(budget, "codice", ["quantita", "imp.comp."])
+        if SUM_FASI:
+            budget = sum_selected_columns(budget, "codice", ["quantita", "imp.comp."])
         budgets.append(budget)
     budgets = pd.concat(budgets, axis=0, ignore_index=True)
+    # print(budgets.columns)
     budgets = budgets[key_sequence]
     if len(reports) > 0:
         reports = pd.concat(reports, axis=0, ignore_index=True)
@@ -137,7 +148,6 @@ cantiere_end = dict()  # dict to keep track of all the ends
 for month in months:
     # Loop over project ids:
     for commessa_folder in list(month.glob("[0-9][0-9][0-9][0-9]")):
-
         # Save end as last valid folder:
         if (
             commessa_folder.name not in to_exclude
