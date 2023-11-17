@@ -51,7 +51,7 @@ def fix_tipologie_df(input_df, tipologie_fix_df, report_filename=None):
 
 
 def isnan(val):
-    if type(val) == str:
+    if isinstance(val, str):
         return False
     else:
         return np.isnan(val)

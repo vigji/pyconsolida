@@ -106,7 +106,7 @@ def read_all_valid_budgets(path, sum_fasi):
 
     try:
         loaded = pd.concat(loaded, axis=0, ignore_index=True)
-    except ValueError as e:
+    except ValueError:
         # raise RuntimeError(f"No valid files found in {path}")
         logging.info(f"No files validi in {path}")
         return None, None
