@@ -1,4 +1,6 @@
+from re import I
 import numpy as np
+import logging
 
 from pyconsolida.sheet_specs import (
     HEADER_TRASLATIONS_DICT,
@@ -27,8 +29,17 @@ def fix_types(df):
     It changes the input inplace!!
     """
     for k, typ in TYPES_MAP.items():
-        df.loc[:, k] = df.loc[:, k].astype(typ)
+        if k == "codice":
+            # ogni tanto qualcuno aggiunge carattere in fondo a numero codice costo:
+            df.loc[:, k] = df.loc[:, k].apply(fix_codice_costo_alphanum)
+        else:
+            df.loc[:, k] = df.loc[:, k].astype(typ)
 
+def fix_codice_costo_alphanum(val):
+    try:
+        return int(val)
+    except ValueError:
+        return int(val[:-1])
 
 def crop_costi(df):
     """Seleziona righe e colonne dello spreadsheet che si riferiscono a costi.
@@ -49,7 +60,7 @@ def crop_costi(df):
         if (
             costi_cells.shape[0] > 1
         ):  # Found at least 1 funny case of a duplicated COSTI row, invisible in the xls file
-            print("File with ambiguous COSTI start definition")
+            logging.info("Buffa duplicazione fantasma casella COSTI")
         start_costi = costi_cells[-1, 0]
         start_costi += SKIP_COSTI_HEAD  # skip predefined number of rows from "COSTI"
     except IndexError:
@@ -76,6 +87,71 @@ def _is_tipologia_header(row):
     nuova tipologia di voci ("Personale", "Noli", etc).
     """
     if type(row.iloc[1]) is not str:
+        return False
+    
+    # Exclude some special cases by hand, as some people defined custom headers
+    # to be ignored:
+    # TODO do this smartly loading from a file!
+    if row.iloc[1] in [
+        "TOPOGRAFIA",
+"SMALTIMENTI VARI",
+"CARATTERIZZAZIONI",
+"SONDAGGI INTEGRATIVI",
+"PROVE DI LABORATORIO",
+"REALIZZAZIONE PISTE ED AREE DI CANTIERE",
+"Smaltimenti",
+"POZZI",
+"JET GROTING",
+"CORREE",
+"Pali D 1000",
+"ICOP",
+"MANUFATTO INTERNO POZZO",
+"PREDISPOSIZIONE ALLACCI",
+"FINITURE",
+"CORREE",
+"Pali D 1000",
+"MANUFATTO INTERNO POZZO",
+"PREDISPOSIZIONE ALLACCI",
+"FINITURE",
+"CORREE",
+"Pali D 1000",
+"MANUFATTO INTERNO POZZO",
+"PREDISPOSIZIONE ALLACCI",
+"MANUFATTO INTERNO POZZO",
+"MANUFATTO DI COLLEGAMENTO",
+"PREDISPOSIZIONE ALLACCI",
+"CORREE",
+"Pali D 1000",
+"MANUFATTO INTERNO POZZO",
+"PREDISPOSIZIONE ALLACCI",
+"CORREE",
+"Pali D 1000",
+"ICOP",
+"MANUFATTO INTERNO POZZO",
+"PREDISPOSIZIONE ALLACCI",
+"CORREE",
+"Pali D 1000",
+"ICOP",
+"MANUFATTO INTERNO POZZO",
+"PREDISPOSIZIONE ALLACCI",
+"STRUTTURA SPINTA DI",
+"CIPRIANI",
+"Spese varie di gestione",
+"PROVE SU MATERIALI",
+"TRASPORTO A DISCARICA MATERIALE SCAVATO",
+"Cordolo testa pali",
+"PROVE SU MATERIALI",
+"PROVE SU MATERIALI",
+"TRASPORTO A DISCARICA MATERIALE SCAVATO",
+"Cordolo testa pali",
+"Platea",
+"Elevazoni e soletta",
+"PROVE SU MATERIALI",
+"PROVE SU MATERIALI",
+"TRASPORTO A DISCARICA MATERIALE SCAVATO",
+"Cordolo testa pali",
+"Platea",
+"CIPRIANI"]:
         return False
 
     if type(row.iloc[2]) is str:

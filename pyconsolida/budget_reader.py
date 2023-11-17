@@ -1,4 +1,6 @@
 import pandas as pd
+import numpy as np
+import logging
 
 from pyconsolida.budget_reader_utils import (
     add_tipologia_column,
@@ -16,12 +18,31 @@ from pyconsolida.sheet_specs import (
     TO_AGGREGATE,
 )
 
+def _is_valid_costo_code(val):
+    """Ritorna True se il valore e' un codice costo valido, False altrimenti."""
+    if isinstance(val, int):
+        return True
+    elif isinstance(val, str):
+        try:
+            int(val[:-1])
+            return True
+        except ValueError:
+            return False
+    return False
 
 def _get_valid_costo_rows(df):
     """Localizza righe con voci costo valide in base al fatto che hanno un intero
     nella colonna codici costo.
     """
-    return list(map(lambda n: isinstance(n, int), df.iloc[:, CODICE_COSTO_COL]))
+    try:
+        max_n = np.nonzero(df.iloc[:, CODICE_COSTO_COL].values == "Totale costi")[0][0]
+    except IndexError:
+        try:
+            max_n = np.nonzero(df.iloc[:, CODICE_COSTO_COL].values == "Total dépenses")[0][0]
+        except IndexError:
+            max_n = len(df)  # Tanto verosimilmente questo non e' un foglio di budget
+    select = [_is_valid_costo_code(cost_id) and i < max_n for i, cost_id in enumerate(df.iloc[:, CODICE_COSTO_COL])]
+    return select
 
 
 def _read_raw_budget_sheet(df):
@@ -62,10 +83,16 @@ def read_full_budget(filename, sum_fasi=True):
         if fase not in ["0-SIT&PROG(2022-24)_", "0-SIT&PROG(2022-24)_prova"]:
             try:
                 costi_fase = _read_raw_budget_sheet(df_fase)
-            except (KeyError, TypeError, ValueError):
-                raise RuntimeError(
+            except (KeyError, TypeError, ValueError) as e:
+                if "['inc.%'] not found in axis" in str(e):
+                    logging.info(
+                        f"Skipping fase'{fase}' in '{filename}': no costi validi"
+                    )
+                    costi_fase = None
+                else:
+                    raise RuntimeError(
                     f"Problem while analyzing fase '{fase}' of file '{filename}'"
-                )
+                    )
                 # to debug you can use notebook.
                 # Common problems are: 1. Leftovers on the gray lower part of the sheet; 2. typos replacing labels with eg numbers.from
 

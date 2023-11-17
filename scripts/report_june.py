@@ -20,10 +20,10 @@ YEAR = 2023
 SUM_FASI = False
 PROGRESS_BAR = False
 
+
 # timestamp for the filename:
 tstamp = datetime.now().strftime("%y%m%d-%H%M%S")
-
-dest_dir = DIRECTORY / f"exported-luigi_sum-fasi-{SUM_FASI}_{tstamp}"
+dest_dir = DIRECTORY / f"exported-luigi-deltagiugno_sum-fasi-{SUM_FASI}_{tstamp}"
 dest_dir.mkdir(exist_ok=True)
 
 if PROGRESS_BAR:
@@ -183,7 +183,7 @@ folders = [val for _, val in cantiere_end.items()]
 folders_dec = list(
     [
         f
-        for f in DIRECTORY.glob(f"{YEAR-1}/*cembr*/[0-9][0-9][0-9][0-9]")
+        for f in DIRECTORY.glob(f"{YEAR}/*iugn*/[0-9][0-9][0-9][0-9]")
         if f.name not in to_exclude
     ]
 )
@@ -191,7 +191,7 @@ budgets_dec, reports_dec = _load_loop_and_concat(
     folders_dec,
     key_sequence,
     fix_typology=tipologie_fix,
-    report_filename=str(dest_dir / f"{tstamp}_report_fixed_tipologie_{YEAR-1}.xlsx"),
+    report_filename=str(dest_dir / f"{tstamp}_report_fixed_tipologie_giugno.xlsx"),
 )
 
 # Load most recent budget for every work id
@@ -199,18 +199,16 @@ budgets, reports = _load_loop_and_concat(
     folders,
     key_sequence,
     fix_typology=tipologie_fix,
-    report_filename=str(dest_dir / f"{tstamp}_report_fixed_tipologie_{YEAR}.xlsx"),
+    report_filename=str(dest_dir / f"{tstamp}_report_fixed_tipologie_ottogre.xlsx"),
 )
 
 
-for budget, report, year in zip(
-    [budgets_dec, budgets], [reports_dec, reports], [YEAR - 1, YEAR]
+for budget, report, lab in zip(
+    [budgets_dec, budgets], [reports_dec, reports], ["giugno", "ottobre"]
 ):
-#for budget, report, year in zip(
-#    [budgets], [reports], [YEAR]
-#):
-    budget.to_excel(str(dest_dir / f"{tstamp}_tabellone_{year}.xlsx"))
-    reports.to_excel(str(dest_dir / f"{tstamp}_voci-costo_fix_report-{year}.xlsx"))
+
+    budget.to_excel(str(dest_dir / f"{tstamp}_tabellone_{lab}.xlsx"))
+    reports.to_excel(str(dest_dir / f"{tstamp}_voci-costo_fix_report-{lab}.xlsx"))
 
 tipologie_fix.to_excel(str(dest_dir / f"{tstamp}_tipologie-fix.xlsx"))
 
