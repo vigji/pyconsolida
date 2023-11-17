@@ -4,6 +4,7 @@ The input folder (specified as DIRECTORY) has to be organized in the following w
 """
 
 
+import logging
 from datetime import datetime
 from pathlib import Path
 
@@ -13,7 +14,6 @@ from tqdm import tqdm
 
 from pyconsolida.budget_reader import read_full_budget, sum_selected_columns
 from pyconsolida.posthoc_fix_utils import fix_tipologie_df
-import logging
 
 DIRECTORY = Path("/Users/vigji/Desktop/icop")
 YEAR = 2023
@@ -31,15 +31,17 @@ if PROGRESS_BAR:
 else:
     wrapper = lambda x: x
 
-logging.basicConfig(filename=dest_dir / f"log_{tstamp}.txt",
-                    filemode='a',
-                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
-                    datefmt='%H:%M:%S',
-                    level=logging.INFO)
+logging.basicConfig(
+    filename=dest_dir / f"log_{tstamp}.txt",
+    filemode="a",
+    format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
+    datefmt="%H:%M:%S",
+    level=logging.INFO,
+)
 
 logging.info("Running 2022 delta")
 
-logger = logging.getLogger('deltaDec')
+logger = logging.getLogger("deltaDec")
 # sequence of keys in the final table:
 key_sequence = [
     "commessa",
@@ -155,6 +157,7 @@ def _load_loop_and_concat(
         )
     return budgets, reports
 
+
 # All reports:
 reports = []
 months = sorted(list(DIRECTORY.glob(f"{YEAR}/[0-1][0-9]_*")))
@@ -206,7 +209,6 @@ budgets, reports = _load_loop_and_concat(
 for budget, report, lab in zip(
     [budgets_dec, budgets], [reports_dec, reports], ["giugno", "ottobre"]
 ):
-
     budget.to_excel(str(dest_dir / f"{tstamp}_tabellone_{lab}.xlsx"))
     reports.to_excel(str(dest_dir / f"{tstamp}_voci-costo_fix_report-{lab}.xlsx"))
 
@@ -222,8 +224,12 @@ data_dict = fl.load(dest_dir / f"{tstamp}_python_data.h5")
 numerical = ["quantita", "imp. unit.", "imp.comp."]
 budgets_tot, budgets_dec = data_dict["budgets"], data_dict["budgets_dec"]
 
-budgets_tot = budgets_tot.set_index(["commessa", "codice", "fase"]).drop(["costo u."], axis=1)
-budgets_dec = budgets_dec.set_index(["commessa", "codice", "fase"]).drop(["costo u."], axis=1)
+budgets_tot = budgets_tot.set_index(["commessa", "codice", "fase"]).drop(
+    ["costo u."], axis=1
+)
+budgets_dec = budgets_dec.set_index(["commessa", "codice", "fase"]).drop(
+    ["costo u."], axis=1
+)
 
 dec_al, tot_al = budgets_dec.align(budgets_tot)
 dec_al.loc[:, numerical] = dec_al.loc[:, numerical].fillna(0)

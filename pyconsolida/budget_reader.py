@@ -1,6 +1,7 @@
-import pandas as pd
-import numpy as np
 import logging
+
+import numpy as np
+import pandas as pd
 
 from pyconsolida.budget_reader_utils import (
     add_tipologia_column,
@@ -18,6 +19,7 @@ from pyconsolida.sheet_specs import (
     TO_AGGREGATE,
 )
 
+
 def _is_valid_costo_code(val):
     """Ritorna True se il valore e' un codice costo valido, False altrimenti."""
     if isinstance(val, int):
@@ -30,6 +32,7 @@ def _is_valid_costo_code(val):
             return False
     return False
 
+
 def _get_valid_costo_rows(df):
     """Localizza righe con voci costo valide in base al fatto che hanno un intero
     nella colonna codici costo.
@@ -38,10 +41,15 @@ def _get_valid_costo_rows(df):
         max_n = np.nonzero(df.iloc[:, CODICE_COSTO_COL].values == "Totale costi")[0][0]
     except IndexError:
         try:
-            max_n = np.nonzero(df.iloc[:, CODICE_COSTO_COL].values == "Total dépenses")[0][0]
+            max_n = np.nonzero(df.iloc[:, CODICE_COSTO_COL].values == "Total dépenses")[
+                0
+            ][0]
         except IndexError:
             max_n = len(df)  # Tanto verosimilmente questo non e' un foglio di budget
-    select = [_is_valid_costo_code(cost_id) and i < max_n for i, cost_id in enumerate(df.iloc[:, CODICE_COSTO_COL])]
+    select = [
+        _is_valid_costo_code(cost_id) and i < max_n
+        for i, cost_id in enumerate(df.iloc[:, CODICE_COSTO_COL])
+    ]
     return select
 
 
@@ -91,7 +99,7 @@ def read_full_budget(filename, sum_fasi=True):
                     costi_fase = None
                 else:
                     raise RuntimeError(
-                    f"Problem while analyzing fase '{fase}' of file '{filename}'"
+                        f"Problem while analyzing fase '{fase}' of file '{filename}'"
                     )
                 # to debug you can use notebook.
                 # Common problems are: 1. Leftovers on the gray lower part of the sheet; 2. typos replacing labels with eg numbers.from

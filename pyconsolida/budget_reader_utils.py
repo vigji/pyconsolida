@@ -1,6 +1,7 @@
-from re import I
-import numpy as np
 import logging
+from re import I
+
+import numpy as np
 
 from pyconsolida.sheet_specs import (
     HEADER_TRASLATIONS_DICT,
@@ -35,11 +36,13 @@ def fix_types(df):
         else:
             df.loc[:, k] = df.loc[:, k].astype(typ)
 
+
 def fix_codice_costo_alphanum(val):
     try:
         return int(val)
     except ValueError:
         return int(val[:-1])
+
 
 def crop_costi(df):
     """Seleziona righe e colonne dello spreadsheet che si riferiscono a costi.
@@ -88,70 +91,71 @@ def _is_tipologia_header(row):
     """
     if type(row.iloc[1]) is not str:
         return False
-    
+
     # Exclude some special cases by hand, as some people defined custom headers
     # to be ignored:
     # TODO do this smartly loading from a file!
     if row.iloc[1] in [
         "TOPOGRAFIA",
-"SMALTIMENTI VARI",
-"CARATTERIZZAZIONI",
-"SONDAGGI INTEGRATIVI",
-"PROVE DI LABORATORIO",
-"REALIZZAZIONE PISTE ED AREE DI CANTIERE",
-"Smaltimenti",
-"POZZI",
-"JET GROTING",
-"CORREE",
-"Pali D 1000",
-"ICOP",
-"MANUFATTO INTERNO POZZO",
-"PREDISPOSIZIONE ALLACCI",
-"FINITURE",
-"CORREE",
-"Pali D 1000",
-"MANUFATTO INTERNO POZZO",
-"PREDISPOSIZIONE ALLACCI",
-"FINITURE",
-"CORREE",
-"Pali D 1000",
-"MANUFATTO INTERNO POZZO",
-"PREDISPOSIZIONE ALLACCI",
-"MANUFATTO INTERNO POZZO",
-"MANUFATTO DI COLLEGAMENTO",
-"PREDISPOSIZIONE ALLACCI",
-"CORREE",
-"Pali D 1000",
-"MANUFATTO INTERNO POZZO",
-"PREDISPOSIZIONE ALLACCI",
-"CORREE",
-"Pali D 1000",
-"ICOP",
-"MANUFATTO INTERNO POZZO",
-"PREDISPOSIZIONE ALLACCI",
-"CORREE",
-"Pali D 1000",
-"ICOP",
-"MANUFATTO INTERNO POZZO",
-"PREDISPOSIZIONE ALLACCI",
-"STRUTTURA SPINTA DI",
-"CIPRIANI",
-"Spese varie di gestione",
-"PROVE SU MATERIALI",
-"TRASPORTO A DISCARICA MATERIALE SCAVATO",
-"Cordolo testa pali",
-"PROVE SU MATERIALI",
-"PROVE SU MATERIALI",
-"TRASPORTO A DISCARICA MATERIALE SCAVATO",
-"Cordolo testa pali",
-"Platea",
-"Elevazoni e soletta",
-"PROVE SU MATERIALI",
-"PROVE SU MATERIALI",
-"TRASPORTO A DISCARICA MATERIALE SCAVATO",
-"Cordolo testa pali",
-"Platea",
-"CIPRIANI"]:
+        "SMALTIMENTI VARI",
+        "CARATTERIZZAZIONI",
+        "SONDAGGI INTEGRATIVI",
+        "PROVE DI LABORATORIO",
+        "REALIZZAZIONE PISTE ED AREE DI CANTIERE",
+        "Smaltimenti",
+        "POZZI",
+        "JET GROTING",
+        "CORREE",
+        "Pali D 1000",
+        "ICOP",
+        "MANUFATTO INTERNO POZZO",
+        "PREDISPOSIZIONE ALLACCI",
+        "FINITURE",
+        "CORREE",
+        "Pali D 1000",
+        "MANUFATTO INTERNO POZZO",
+        "PREDISPOSIZIONE ALLACCI",
+        "FINITURE",
+        "CORREE",
+        "Pali D 1000",
+        "MANUFATTO INTERNO POZZO",
+        "PREDISPOSIZIONE ALLACCI",
+        "MANUFATTO INTERNO POZZO",
+        "MANUFATTO DI COLLEGAMENTO",
+        "PREDISPOSIZIONE ALLACCI",
+        "CORREE",
+        "Pali D 1000",
+        "MANUFATTO INTERNO POZZO",
+        "PREDISPOSIZIONE ALLACCI",
+        "CORREE",
+        "Pali D 1000",
+        "ICOP",
+        "MANUFATTO INTERNO POZZO",
+        "PREDISPOSIZIONE ALLACCI",
+        "CORREE",
+        "Pali D 1000",
+        "ICOP",
+        "MANUFATTO INTERNO POZZO",
+        "PREDISPOSIZIONE ALLACCI",
+        "STRUTTURA SPINTA DI",
+        "CIPRIANI",
+        "Spese varie di gestione",
+        "PROVE SU MATERIALI",
+        "TRASPORTO A DISCARICA MATERIALE SCAVATO",
+        "Cordolo testa pali",
+        "PROVE SU MATERIALI",
+        "PROVE SU MATERIALI",
+        "TRASPORTO A DISCARICA MATERIALE SCAVATO",
+        "Cordolo testa pali",
+        "Platea",
+        "Elevazoni e soletta",
+        "PROVE SU MATERIALI",
+        "PROVE SU MATERIALI",
+        "TRASPORTO A DISCARICA MATERIALE SCAVATO",
+        "Cordolo testa pali",
+        "Platea",
+        "CIPRIANI",
+    ]:
         return False
 
     if type(row.iloc[2]) is str:
