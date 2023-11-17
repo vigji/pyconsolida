@@ -14,12 +14,12 @@ def test_budget_reader(assets_folder, sum_fasi):
     data_path = assets_folder / "test_raw_sheet.xls"
 
     budget, _ = read_full_budget(data_path, sum_fasi=sum_fasi)
-    
+
     # Hopefully horror commented out forever, but you never know:
     # fl.save(assets_folder / f"new_expected_sum_{str(sum_fasi)}", budget)
     # sum_true = fl.load(assets_folder / f"new_expected_sum_{str(True)}")
     # sum_false = fl.load(assets_folder / f"new_expected_sum_{str(False)}")
-    ## fl.save(assets_folder / "new_expected.h5", dict(sum_True=sum_true, 
+    ## fl.save(assets_folder / "new_expected.h5", dict(sum_True=sum_true,
     #                                                 sum_False=sum_false))
 
     assert_frame_equal(expected[f"sum_{str(sum_fasi)}"], budget)
