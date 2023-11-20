@@ -8,7 +8,6 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-import flammkuchen as fl
 import pandas as pd
 from tqdm import tqdm
 
@@ -214,28 +213,31 @@ for budget, report, lab in zip(
 
 tipologie_fix.to_excel(str(dest_dir / f"{tstamp}_tipologie-fix.xlsx"))
 
-fl.save(
-    dest_dir / f"{tstamp}_python_data.h5",
-    dict(budgets_dec=budgets_dec, budgets=budgets),
-)
+
+# Sezione per calcolare i delta, non serve piu:
+# import flammkuchen as fl
+# fl.save(
+#     dest_dir / f"{tstamp}_python_data.h5",
+#     dict(budgets_dec=budgets_dec, budgets=budgets),
+# )
 
 # Compute deltas:
-data_dict = fl.load(dest_dir / f"{tstamp}_python_data.h5")
-numerical = ["quantita", "imp. unit.", "imp.comp."]
-budgets_tot, budgets_dec = data_dict["budgets"], data_dict["budgets_dec"]
+# data_dict = fl.load(dest_dir / f"{tstamp}_python_data.h5")
+# numerical = ["quantita", "imp. unit.", "imp.comp."]
+# budgets_tot, budgets_dec = data_dict["budgets"], data_dict["budgets_dec"]
 
-budgets_tot = budgets_tot.set_index(["commessa", "codice", "fase"]).drop(
-    ["costo u."], axis=1
-)
-budgets_dec = budgets_dec.set_index(["commessa", "codice", "fase"]).drop(
-    ["costo u."], axis=1
-)
+# budgets_tot = budgets_tot.set_index(["commessa", "codice", "fase"]).drop(
+#     ["costo u."], axis=1
+# )
+# budgets_dec = budgets_dec.set_index(["commessa", "codice", "fase"]).drop(
+#     ["costo u."], axis=1
+# )
 
-dec_al, tot_al = budgets_dec.align(budgets_tot)
-dec_al.loc[:, numerical] = dec_al.loc[:, numerical].fillna(0)
-tot_al.loc[:, numerical] = tot_al.loc[:, numerical].fillna(0)
+# dec_al, tot_al = budgets_dec.align(budgets_tot)
+# dec_al.loc[:, numerical] = dec_al.loc[:, numerical].fillna(0)
+# tot_al.loc[:, numerical] = tot_al.loc[:, numerical].fillna(0)
 
-for col in ["quantita", "imp.comp."]:
-    deltas = tot_al[col] - dec_al[col]
-    deltas.to_csv(dest_dir / f"{tstamp}_deltas_{col}.csv")
-    deltas[deltas < 0].to_excel(dest_dir / f"{tstamp}_negative-deltas.csv")
+# for col in ["quantita", "imp.comp."]:
+#     deltas = tot_al[col] - dec_al[col]
+#     deltas.to_csv(dest_dir / f"{tstamp}_deltas_{col}.csv")
+#     deltas[deltas < 0].to_excel(dest_dir / f"{tstamp}_negative-deltas.csv")

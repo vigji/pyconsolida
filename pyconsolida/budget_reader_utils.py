@@ -84,78 +84,28 @@ def crop_costi(df):
     return cropped_df
 
 
-def _is_tipologia_header(row):
+def _is_tipologia_header(row, commessa, fase, tipologie_skip=None):
     """Controlla se la riga corrente e' una voce o l'header di una
     nuova tipologia di voci ("Personale", "Noli", etc).
+
+    Siccome alcune correzione sono fatte su fogli specifici, per ora
+    serve propagare fino a qui l'info su commessa e fase.
     """
     if type(row.iloc[1]) is not str:
         return False
 
-    # Exclude some special cases by hand, as some people defined custom headers
-    # to be ignored:
-    # TODO do this smartly loading from a file!
-    if row.iloc[1] in [
-        "TOPOGRAFIA",
-        "SMALTIMENTI VARI",
-        "CARATTERIZZAZIONI",
-        "SONDAGGI INTEGRATIVI",
-        "PROVE DI LABORATORIO",
-        "REALIZZAZIONE PISTE ED AREE DI CANTIERE",
-        "Smaltimenti",
-        "POZZI",
-        "JET GROTING",
-        "CORREE",
-        "Pali D 1000",
-        "ICOP",
-        "MANUFATTO INTERNO POZZO",
-        "PREDISPOSIZIONE ALLACCI",
-        "FINITURE",
-        "CORREE",
-        "Pali D 1000",
-        "MANUFATTO INTERNO POZZO",
-        "PREDISPOSIZIONE ALLACCI",
-        "FINITURE",
-        "CORREE",
-        "Pali D 1000",
-        "MANUFATTO INTERNO POZZO",
-        "PREDISPOSIZIONE ALLACCI",
-        "MANUFATTO INTERNO POZZO",
-        "MANUFATTO DI COLLEGAMENTO",
-        "PREDISPOSIZIONE ALLACCI",
-        "CORREE",
-        "Pali D 1000",
-        "MANUFATTO INTERNO POZZO",
-        "PREDISPOSIZIONE ALLACCI",
-        "CORREE",
-        "Pali D 1000",
-        "ICOP",
-        "MANUFATTO INTERNO POZZO",
-        "PREDISPOSIZIONE ALLACCI",
-        "CORREE",
-        "Pali D 1000",
-        "ICOP",
-        "MANUFATTO INTERNO POZZO",
-        "PREDISPOSIZIONE ALLACCI",
-        "STRUTTURA SPINTA DI",
-        "CIPRIANI",
-        "Spese varie di gestione",
-        "PROVE SU MATERIALI",
-        "TRASPORTO A DISCARICA MATERIALE SCAVATO",
-        "Cordolo testa pali",
-        "PROVE SU MATERIALI",
-        "PROVE SU MATERIALI",
-        "TRASPORTO A DISCARICA MATERIALE SCAVATO",
-        "Cordolo testa pali",
-        "Platea",
-        "Elevazoni e soletta",
-        "PROVE SU MATERIALI",
-        "PROVE SU MATERIALI",
-        "TRASPORTO A DISCARICA MATERIALE SCAVATO",
-        "Cordolo testa pali",
-        "Platea",
-        "CIPRIANI",
-    ]:
-        return False
+    # Esclusione a mano di alcuni casi specifici:
+    if tipologie_skip is not None:
+        # if sum((tipologie_skip["tipologia"] == row.iloc[1])):
+            
+       #  print(sum((tipologie_skip["tipologia"] == row.iloc[1])))
+        conditions_matched = sum((tipologie_skip["tipologia"] == row.iloc[1]) & \
+                (tipologie_skip["commessa"] == int(commessa)) & \
+                (tipologie_skip["fase"] == fase))
+
+        if conditions_matched:
+            logging.info(f"Ignoro header '{row.iloc[1]}' in  {commessa}/{fase}")
+            return False
 
     if type(row.iloc[2]) is str:
         if row.iloc[2] != HEADERS["units"]:
@@ -167,7 +117,7 @@ def _is_tipologia_header(row):
     return True
 
 
-def add_tipologia_column(df):
+def add_tipologia_column(df, commessa, fase, tipologie_skip=None):
     """Aggiunge una colonna con la tipologia di costo (manodopera, materiale d'opera,
     etc.).
 
@@ -188,7 +138,7 @@ def add_tipologia_column(df):
     current_tipologia = ""  # sovrascriveremo il valore nel loop
     for row_i, row in enumerate(df.index):
         # Se c'è una nuova tipologia, aggiorna current_tipologia:
-        if _is_tipologia_header(df.iloc[row_i, :]):
+        if _is_tipologia_header(df.iloc[row_i, :], commessa, fase, tipologie_skip=tipologie_skip):
             current_tipologia = df.iloc[row_i, TIPOLOGIA_IDX]
 
         df.loc[row, HEADERS["tipologia"]] = current_tipologia

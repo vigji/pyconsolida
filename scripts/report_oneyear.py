@@ -8,7 +8,6 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-import flammkuchen as fl
 import pandas as pd
 from tqdm import tqdm
 
@@ -61,6 +60,7 @@ if not SUM_FASI:
 to_exclude = ["4004", "9981", "1360", "1445"]
 
 tipologie_fix = pd.read_excel(DIRECTORY / "tipologie_fix.xlsx")
+tipologie_skip = pd.read_excel(DIRECTORY / "tipologie_skip.xlsx")
 
 
 def find_all_files(path):
@@ -80,7 +80,7 @@ def find_all_files(path):
     return possible_files
 
 
-def read_all_valid_budgets(path, sum_fasi):
+def read_all_valid_budgets(path, sum_fasi, tipologie_skip=None):
     """Read valid budget files from a folder.
 
     Parameters
@@ -99,7 +99,7 @@ def read_all_valid_budgets(path, sum_fasi):
     loaded = []
     reports = []
     for file in files:
-        fasi, cons_report = read_full_budget(file, sum_fasi=sum_fasi)
+        fasi, cons_report = read_full_budget(file, sum_fasi=sum_fasi, tipologie_skip=tipologie_skip)
         loaded.append(fasi)
         if len(cons_report) > 0:
             reports.append(pd.DataFrame(cons_report))
@@ -129,7 +129,7 @@ def _load_loop_and_concat(
     for folder in wrapper(folders):
         logging.info(f"Loading {folder}")
         try:
-            budget, rep = read_all_valid_budgets(folder, sum_fasi=SUM_FASI)
+            budget, rep = read_all_valid_budgets(folder, sum_fasi=SUM_FASI, tipologie_skip=tipologie_skip)
         except ValueError as e:
             if "Nessuna voce costo valida in file" in str(e):
                 logging.info(f"Nessuna voce costo valida per: {folder}; salto")
@@ -217,28 +217,31 @@ for budget, report, year in zip(
 
 tipologie_fix.to_excel(str(dest_dir / f"{tstamp}_tipologie-fix.xlsx"))
 
-fl.save(
-    dest_dir / f"{tstamp}_python_data.h5",
-    dict(budgets_dec=budgets_dec, budgets=budgets),
-)
+
+# Sezione per calcolare i delta, non serve piu:
+# import flammkuchen as fl
+# fl.save(
+#     dest_dir / f"{tstamp}_python_data.h5",
+#     dict(budgets_dec=budgets_dec, budgets=budgets),
+# )
 
 # Compute deltas:
-data_dict = fl.load(dest_dir / f"{tstamp}_python_data.h5")
-numerical = ["quantita", "imp. unit.", "imp.comp."]
-budgets_tot, budgets_dec = data_dict["budgets"], data_dict["budgets_dec"]
+# data_dict = fl.load(dest_dir / f"{tstamp}_python_data.h5")
+# numerical = ["quantita", "imp. unit.", "imp.comp."]
+# budgets_tot, budgets_dec = data_dict["budgets"], data_dict["budgets_dec"]
 
-budgets_tot = budgets_tot.set_index(["commessa", "codice", "fase"]).drop(
-    ["costo u."], axis=1
-)
-budgets_dec = budgets_dec.set_index(["commessa", "codice", "fase"]).drop(
-    ["costo u."], axis=1
-)
+# budgets_tot = budgets_tot.set_index(["commessa", "codice", "fase"]).drop(
+#     ["costo u."], axis=1
+# )
+# budgets_dec = budgets_dec.set_index(["commessa", "codice", "fase"]).drop(
+#     ["costo u."], axis=1
+# )
 
-dec_al, tot_al = budgets_dec.align(budgets_tot)
-dec_al.loc[:, numerical] = dec_al.loc[:, numerical].fillna(0)
-tot_al.loc[:, numerical] = tot_al.loc[:, numerical].fillna(0)
+# dec_al, tot_al = budgets_dec.align(budgets_tot)
+# dec_al.loc[:, numerical] = dec_al.loc[:, numerical].fillna(0)
+# tot_al.loc[:, numerical] = tot_al.loc[:, numerical].fillna(0)
 
-for col in ["quantita", "imp.comp."]:
-    deltas = tot_al[col] - dec_al[col]
-    deltas.to_csv(dest_dir / f"{tstamp}_deltas_{col}.csv")
-    deltas[deltas < 0].to_excel(dest_dir / f"{tstamp}_negative-deltas.csv")
+# for col in ["quantita", "imp.comp."]:
+#     deltas = tot_al[col] - dec_al[col]
+#     deltas.to_csv(dest_dir / f"{tstamp}_deltas_{col}.csv")
+#     deltas[deltas < 0].to_excel(dest_dir / f"{tstamp}_negative-deltas.csv")

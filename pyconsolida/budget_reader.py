@@ -53,7 +53,7 @@ def _get_valid_costo_rows(df):
     return select
 
 
-def _read_raw_budget_sheet(df):
+def _read_raw_budget_sheet(df, commessa, fase, tipologie_skip=None):
     """Legge i costi da una pagina di una singola fase del file analisi."""
 
     # Traduci se necessario:
@@ -66,7 +66,7 @@ def _read_raw_budget_sheet(df):
         return
 
     # Aggiungi colonna con tipologie, trascinando in basso ogni nuovo header tipologia:
-    df_costi = add_tipologia_column(df_costi)
+    df_costi = add_tipologia_column(df_costi, commessa, fase, tipologie_skip=tipologie_skip)
 
     # Seleziona righe con un codice costo valido:
     selection = _get_valid_costo_rows(df_costi)
@@ -81,7 +81,7 @@ def _read_raw_budget_sheet(df):
     return voci_costo
 
 
-def read_full_budget(filename, sum_fasi=True):
+def read_full_budget(filename, sum_fasi=True, tipologie_skip=None):
     # Leggi file:
     df = pd.read_excel(filename, sheet_name=None)
 
@@ -90,7 +90,7 @@ def read_full_budget(filename, sum_fasi=True):
     for fase, df_fase in df.items():
         if fase not in ["0-SIT&PROG(2022-24)_", "0-SIT&PROG(2022-24)_prova"]:
             try:
-                costi_fase = _read_raw_budget_sheet(df_fase)
+                costi_fase = _read_raw_budget_sheet(df_fase, filename.parent.name, fase, tipologie_skip=tipologie_skip)
             except (KeyError, TypeError, ValueError) as e:
                 if "['inc.%'] not found in axis" in str(e):
                     logging.info(
