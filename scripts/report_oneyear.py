@@ -99,7 +99,9 @@ def read_all_valid_budgets(path, sum_fasi, tipologie_skip=None):
     loaded = []
     reports = []
     for file in files:
-        fasi, cons_report = read_full_budget(file, sum_fasi=sum_fasi, tipologie_skip=tipologie_skip)
+        fasi, cons_report = read_full_budget(
+            file, sum_fasi=sum_fasi, tipologie_skip=tipologie_skip
+        )
         loaded.append(fasi)
         if len(cons_report) > 0:
             reports.append(pd.DataFrame(cons_report))
@@ -129,7 +131,9 @@ def _load_loop_and_concat(
     for folder in wrapper(folders):
         logging.info(f"Loading {folder}")
         try:
-            budget, rep = read_all_valid_budgets(folder, sum_fasi=SUM_FASI, tipologie_skip=tipologie_skip)
+            budget, rep = read_all_valid_budgets(
+                folder, sum_fasi=SUM_FASI, tipologie_skip=tipologie_skip
+            )
         except ValueError as e:
             if "Nessuna voce costo valida in file" in str(e):
                 logging.info(f"Nessuna voce costo valida per: {folder}; salto")

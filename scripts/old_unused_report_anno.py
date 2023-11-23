@@ -24,7 +24,9 @@ def read_all_valid_budgets(path, sum_fasi=True, tipologie_skip=None):
     loaded = []
     reports = []
     for file in files:
-        fasi, cons_report = read_full_budget(file, sum_fasi=sum_fasi, tipologie_skip=tipologie_skip)
+        fasi, cons_report = read_full_budget(
+            file, sum_fasi=sum_fasi, tipologie_skip=tipologie_skip
+        )
         loaded.append(fasi)
         if len(cons_report) > 0:
             reports.append(pd.DataFrame(cons_report))
@@ -84,7 +86,9 @@ folders2021 = [val for _, val in cantiere_end.items()]
 all_budgets2021 = []
 
 for folder in tqdm(folders2021):
-    budget, rep = read_all_valid_budgets(folder, sum_fasi=True, tipologie_skip=tipologie_skip)
+    budget, rep = read_all_valid_budgets(
+        folder, sum_fasi=True, tipologie_skip=tipologie_skip
+    )
     if rep is not None:
         rep["anno"] = "2021"
         reports.append(rep)
@@ -107,7 +111,9 @@ folders2020 = list(
 
 all_budgets2020 = []
 for folder in tqdm(folders2020):
-    budget, rep = read_all_valid_budgets(folder, sum_fasi=True, tipologie_skip=tipologie_skip)
+    budget, rep = read_all_valid_budgets(
+        folder, sum_fasi=True, tipologie_skip=tipologie_skip
+    )
     if rep is not None:
         rep["anno"] = "2020"
         reports.append(rep)

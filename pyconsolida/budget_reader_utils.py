@@ -28,10 +28,18 @@ def fix_types(df):
     """Ensures consistency of data types of all columns.
     It changes the input inplace!!
     """
+
     for k, typ in TYPES_MAP.items():
-        if k == "codice":
+        # print(k)
+        if k == HEADERS["codice"]:
             # ogni tanto qualcuno aggiunge carattere in fondo a numero codice costo:
             df.loc[:, k] = df.loc[:, k].apply(fix_codice_costo_alphanum)
+        if k == HEADERS["costo_unit"]:
+            df.loc[:, k] = df.loc[:, k].apply(
+                lambda x: typ(x.replace(" ", "").replace(",", "."))
+                if type(x) is str
+                else typ(x)
+            )
         else:
             df.loc[:, k] = df.loc[:, k].astype(typ)
 
@@ -97,11 +105,13 @@ def _is_tipologia_header(row, commessa, fase, tipologie_skip=None):
     # Esclusione a mano di alcuni casi specifici:
     if tipologie_skip is not None:
         # if sum((tipologie_skip["tipologia"] == row.iloc[1])):
-            
-       #  print(sum((tipologie_skip["tipologia"] == row.iloc[1])))
-        conditions_matched = sum((tipologie_skip["tipologia"] == row.iloc[1]) & \
-                (tipologie_skip["commessa"] == int(commessa)) & \
-                (tipologie_skip["fase"] == fase))
+
+        #  print(sum((tipologie_skip["tipologia"] == row.iloc[1])))
+        conditions_matched = sum(
+            (tipologie_skip["tipologia"] == row.iloc[1])
+            & (tipologie_skip["commessa"] == int(commessa))
+            & (tipologie_skip["fase"] == fase)
+        )
 
         if conditions_matched:
             logging.info(f"Ignoro header '{row.iloc[1]}' in  {commessa}/{fase}")
@@ -138,7 +148,9 @@ def add_tipologia_column(df, commessa, fase, tipologie_skip=None):
     current_tipologia = ""  # sovrascriveremo il valore nel loop
     for row_i, row in enumerate(df.index):
         # Se c'è una nuova tipologia, aggiorna current_tipologia:
-        if _is_tipologia_header(df.iloc[row_i, :], commessa, fase, tipologie_skip=tipologie_skip):
+        if _is_tipologia_header(
+            df.iloc[row_i, :], commessa, fase, tipologie_skip=tipologie_skip
+        ):
             current_tipologia = df.iloc[row_i, TIPOLOGIA_IDX]
 
         df.loc[row, HEADERS["tipologia"]] = current_tipologia
@@ -166,6 +178,10 @@ def fix_voice_consistency(df):
 
     # Fix inconsistent voices:
     codice_mapping = df.groupby("codice").apply(_map_consistent_voce, "voce")
+    # try:
     df["voce"] = df["codice"].map(codice_mapping)
+    # except ValueError:
+
+    # print(df)
 
     return df, consistence_report

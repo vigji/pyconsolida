@@ -33,7 +33,7 @@ HEADER_TRASLATIONS_DICT = {
     HEADERS["costi_start"]: ["DÉPENSES"],
     HEADERS["codice"]: ["Codice", "Code"],
     HEADERS["units"]: [],
-    HEADERS["costo_unit"]: ["coût u.", "coît u.", "Costo unit."],
+    HEADERS["costo_unit"]: ["coût u.", "coît u.", "Costo unit.", "costou."],
     HEADERS["quantita"]: ["Quantità", "Quantité", "Quantita"],
     HEADERS["imp_unit"]: ["mont. unit.", "Prezzo unit."],
     HEADERS["inc_perc"]: [],

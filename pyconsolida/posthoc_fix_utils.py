@@ -61,7 +61,7 @@ def replacenan(val):
     if isnan(val):
         return "!@#$#$^"
     else:
-        return val
+        return str(val)  # ensure this is string
 
 
 def format_check(check_list):
@@ -69,7 +69,10 @@ def format_check(check_list):
 
 
 def format_to_check(check_list):
+    # print(check_list)
+    # try:
     return list([replacenan(i).lower() for i in check_list])
+    # except AttributeError:
 
 
 @njit
@@ -115,6 +118,7 @@ def isinlist(
     se_non_contiene_key="e non contiene",
     se_tipologia_key="da",
 ):
+    print(tipologie_fix_df)
     return _isinlist(
         format_to_check(input_df[voce_key]),
         format_to_check(input_df[tipologia_key]),
