@@ -70,7 +70,7 @@ def crop_costi(df):
         if (
             costi_cells.shape[0] > 1
         ):  # Found at least 1 funny case of a duplicated COSTI row, invisible in the xls file
-            logging.info("Buffa duplicazione fantasma casella COSTI")
+            logging.warning("Buffa duplicazione fantasma casella COSTI")
         start_costi = costi_cells[-1, 0]
         start_costi += SKIP_COSTI_HEAD  # skip predefined number of rows from "COSTI"
     except IndexError:
@@ -102,11 +102,9 @@ def _is_tipologia_header(row, commessa, fase, tipologie_skip=None):
     if type(row.iloc[1]) is not str:
         return False
 
-    # Esclusione a mano di alcuni casi specifici:
+    # Esclusione a mano di alcuni casi specifici in cui pseudo headers di 
+    # tipologia sono a uso interno commessa e quindi da evitare::
     if tipologie_skip is not None:
-        # if sum((tipologie_skip["tipologia"] == row.iloc[1])):
-
-        #  print(sum((tipologie_skip["tipologia"] == row.iloc[1])))
         conditions_matched = sum(
             (tipologie_skip["tipologia"] == row.iloc[1])
             & (tipologie_skip["commessa"] == int(commessa))
@@ -114,7 +112,7 @@ def _is_tipologia_header(row, commessa, fase, tipologie_skip=None):
         )
 
         if conditions_matched:
-            logging.info(f"Ignoro header '{row.iloc[1]}' in  {commessa}/{fase}")
+            logging.warning(f"Ignoro header '{row.iloc[1]}' in  {commessa}/{fase}")
             return False
 
     if type(row.iloc[2]) is str:
