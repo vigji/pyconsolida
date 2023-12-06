@@ -16,8 +16,7 @@ from pyconsolida.budget_reader import read_full_budget
 from pyconsolida.posthoc_fix_utils import fix_tipologie_df
 from pyconsolida.date_utils import months_between_dates, data_from_commessa_folder
 
-DIRECTORY = Path("/Users/vigji/Desktop/icop")
-# YEAR = 2023
+DIRECTORY = Path("/myshare/cantieri")  # Path("/Users/vigji/Desktop/icop")
 PROGRESS_BAR = True
 
 # timestamp for the filename:

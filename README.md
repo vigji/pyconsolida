@@ -20,8 +20,7 @@ Browse from terminal to the folder and type:
 cd pyconsolida
 pip install -e .
 ```
-To run the scripts:
+To run the continuous export script:
 ```bash
-cd scripts
-python ....py
+python scripts/
 ```
