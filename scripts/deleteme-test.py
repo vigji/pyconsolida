@@ -25,10 +25,10 @@ tstamp = datetime.now().strftime("%y%m%d-%H%M%S")
 # dest_dir = DIRECTORY / "exports" / f"exported-luigi_all-months-_{tstamp}"
 # dest_dir.mkdir(exist_ok=True, parents=True)
 
-# if PROGRESS_BAR:
-#     wrapper = tqdm
-# else:
-#     wrapper = lambda x: x
+if PROGRESS_BAR:
+    wrapper = tqdm
+else:
+    wrapper = lambda x: x
 
 # logging.basicConfig(
 #     filename=dest_dir / f"log_{tstamp}.txt",
@@ -191,15 +191,23 @@ print(len(all_folders))
 
 # %%
 # Log this:
-sorted(list(set([folder.parent for folder in all_folders])))
-sorted([_data_from_folder(folder) for folder in list(set([folder.parent for folder in all_folders]))])
+from pyconsolida.folder_read_utils import months_between_dates, data_from_commessa_folder, get_folder_hash
+# sorted(list(set([folder.parent for folder in all_folders])))
+# sorted([_data_from_folder(folder) for folder in list(set([folder.parent for folder in all_folders]))])
+
+# %%
+all_hashes = pd.DataFrame({get_folder_hash(f) for f in wrapper(all_folders)})
+all_hashes
+# %%
+# %%
+# %%
 # %%
 # for every folder, count months from the first time it was seen:
 all_commesse = list(set([folder.name for folder in all_folders]))
 commessa = all_commesse[1]
 enumerated = [(i, folder) for i, folder in enumerate(all_folders) if folder.name == commessa]
 
-from dateutil.relativedelta import relativedelta
+
 def _data_from_folder(folder):
     # Read year and month from folder and generate a datetime object:
     anno = int(folder.parent.parent.name)
@@ -262,5 +270,5 @@ def get_file_hash(filename):
 # file_hash = get_file_hash("path/to/your/file")
 # print(file_hash)
 folder = [(folder) for folder in (all_folders) if folder.name == commessa][0]
-%timeit get_file_hash(folder / "Analisi.xls") 
+
 # %%

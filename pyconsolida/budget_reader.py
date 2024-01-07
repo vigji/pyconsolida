@@ -9,6 +9,8 @@ from pyconsolida.budget_reader_utils import (
     fix_types,
     fix_voice_consistency,
     translate_df,
+    get_repo_version,
+    get_folder_hash
 )
 from pyconsolida.df_utils import sum_selected_columns
 from pyconsolida.sheet_specs import (
@@ -113,7 +115,26 @@ def _read_raw_budget_sheet(df, commessa, fase, tipologie_skip=None):
     return voci_costo
 
 
-def read_full_budget(filename, sum_fasi=True, tipologie_skip=None):
+def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
+    # Define cached filename:
+    script_hash = get_repo_version()
+    folder_hash = get_folder_hash(filename.parent)
+
+
+    cached_filename = filename.parent / f"{filename.stem}_cache_{script_hash}.csv"
+
+    # Controlla se c'è già un csv generato con la stessa versione dello script:
+    if cache:
+        try:
+            csv_filename = next(filename.parent.glob(f"{filename.stem}_cache_*.csv"))
+
+            # check current repo version:
+
+            file_hash, script_hash = csv_filename.stem.split("_cache_").split("_")
+
+        except StopIteration:
+            pass
+    
     # Leggi file:
     df = pd.read_excel(filename, sheet_name=None)
 
@@ -168,4 +189,7 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None):
     else:
         all_fasi_concat = all_fasi_concat[SHEET_COL_SEQ_FASE]
 
+    if cache:
+        # Salva csv con versione dello script e del file:
+        pass
     return all_fasi_concat, consistency_report

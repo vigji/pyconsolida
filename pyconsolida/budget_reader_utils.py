@@ -1,6 +1,8 @@
 import logging
 
 import numpy as np
+import git
+import hashlib
 
 from pyconsolida.sheet_specs import (
     HEADER_TRASLATIONS_DICT,
@@ -183,3 +185,28 @@ def fix_voice_consistency(df):
     # print(df)
 
     return df, consistence_report
+
+
+def get_repo_version():
+    N_HASH_CHARS = 6
+
+    repo = git.Repo(search_parent_directories=True)
+    sha = repo.head.object.hexsha
+    return sha[:N_HASH_CHARS]
+
+
+def get_folder_hash(folder_path):
+    """Compute SHA-256 hash of all files in a folder using pathlib."""
+    N_HASH_CHARS = 10
+    sha256_hash = hashlib.sha256()
+    # Create a Path object for the folder
+    folder = Path(folder_path)
+    # Iterate over all files in the folder, including subfolders
+    for file_path in sorted(folder.rglob('*')):
+        # Check if it's a file and not a directory
+        if file_path.is_file():
+            # Hash each file
+            with open(file_path, "rb") as f:
+                for byte_block in iter(lambda: f.read(4096), b""):
+                    sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()[:N_HASH_CHARS]

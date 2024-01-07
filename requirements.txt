@@ -7,3 +7,4 @@ datetime
 tabulate
 xlrd
 flammkuchen
+GitPython
