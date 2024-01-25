@@ -1,8 +1,10 @@
 import logging
+from math import e
 
 import numpy as np
 import git
 import hashlib
+from pathlib import Path
 
 from pyconsolida.sheet_specs import (
     HEADER_TRASLATIONS_DICT,
@@ -32,7 +34,6 @@ def fix_types(df):
     """
 
     for k, typ in TYPES_MAP.items():
-        # print(k)
         if k == HEADERS["codice"]:
             # ogni tanto qualcuno aggiunge carattere in fondo a numero codice costo:
             df.loc[:, k] = df.loc[:, k].apply(fix_codice_costo_alphanum)
@@ -103,13 +104,18 @@ def _is_tipologia_header(row, commessa, fase, tipologie_skip=None):
     """
     if type(row.iloc[1]) is not str:
         return False
+    
+    try:
+        int_commessa = int(commessa)
+    except ValueError:
+        int_commessa = int(commessa[:4])  # Alcune cartelle hanno XXX-Preventivo
 
     # Esclusione a mano di alcuni casi specifici in cui pseudo headers di 
     # tipologia sono a uso interno commessa e quindi da evitare::
     if tipologie_skip is not None:
         conditions_matched = sum(
             (tipologie_skip["tipologia"] == row.iloc[1])
-            & (tipologie_skip["commessa"] == int(commessa))
+            & (tipologie_skip["commessa"] == int_commessa)
             & (tipologie_skip["fase"] == fase)
         )
 
@@ -182,7 +188,6 @@ def fix_voice_consistency(df):
     df["voce"] = df["codice"].map(codice_mapping)
     # except ValueError:
 
-    # print(df)
 
     return df, consistence_report
 
@@ -203,8 +208,8 @@ def get_folder_hash(folder_path):
     folder = Path(folder_path)
     # Iterate over all files in the folder, including subfolders
     for file_path in sorted(folder.rglob('*')):
-        # Check if it's a file and not a directory
-        if file_path.is_file():
+        # escludo cache e emmpty folders:
+        if file_path.is_file() and file_path.parent.name != "cached":
             # Hash each file
             with open(file_path, "rb") as f:
                 for byte_block in iter(lambda: f.read(4096), b""):

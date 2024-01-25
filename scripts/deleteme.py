@@ -22,7 +22,7 @@ dest_dir.mkdir(exist_ok=True, parents=True)
 # Remove all handlers associated with the root logger object.
 for handler in logging.root.handlers[:]:
     logging.root.removeHandler(handler)
-
+    
 logging.basicConfig(
     filename=dest_dir / f"log_{tstamp}.txt",
     filemode="a",
@@ -63,25 +63,8 @@ logging.info(f"File di correzione tipologie: {DIRECTORY / 'tipologie_fix.xlsx'}"
 tipologie_skip = pd.read_excel(DIRECTORY / "tipologie_skip.xlsx")
 logging.info(f"File di tipologie da saltare: {DIRECTORY / 'tipologie_fix.xlsx'}")
 
-all_folders = list(DIRECTORY.glob("202[1-9]/[0-1][0-9]_*/*"))
+all_folders = list(DIRECTORY.glob("202[1-9]/[0-1][0-9]_*/1475"))
 # 2021 e 2022 formattazione diversa:
-all_folders += list(DIRECTORY.glob("202[1-9]/*_[0-1][0-9]*/[0-9][0-9][0-9][0-9]*"))
-all_folders = sorted([f for f in all_folders if f.is_dir()])
+all_folders += list(DIRECTORY.glob("202[1-9]/*_[0-1][0-9]*/1475"))
+all_folders = sorted(all_folders)
 logging.info(f"Cartelle da analizzare trovate: {len(all_folders)}")
-
-budget, reports = load_loop_and_concat(
-    all_folders,
-    key_sequence,
-    tipologie_fix=tipologie_fix,
-    tipologie_skip=tipologie_skip,
-    progress_bar=PROGRESS_BAR,
-    report_filename=str(dest_dir / f"{tstamp}_report_fixed_tipologie.xlsx"),
-)
-
-budget.to_excel(str(dest_dir / f"{tstamp}_tabellone.xlsx"))
-budget.to_hdf(str(dest_dir / f"{tstamp}_tabellone.h5"), key="budget")
-
-if len(reports) > 0:
-    reports.to_excel(str(dest_dir / f"{tstamp}_voci-costo_fix_report.xlsx"))
-
-tipologie_fix.to_excel(str(dest_dir / f"{tstamp}_tipologie-fix.xlsx"))

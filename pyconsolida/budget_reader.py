@@ -117,58 +117,60 @@ def _read_raw_budget_sheet(df, commessa, fase, tipologie_skip=None):
 
 def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
     # Define cached filename:
+    CACHE_FOLDERNAME = "cached"
     script_hash = get_repo_version()
     folder_hash = get_folder_hash(filename.parent)
 
-
-    cached_filename = filename.parent / f"{filename.stem}_cache_{script_hash}.csv"
+    cached_folder = filename.parent / CACHE_FOLDERNAME
+    cached_folder.mkdir(exist_ok=True)
+    cached_filename = cached_folder / f"{filename.stem}_cache_{folder_hash}_{script_hash}.pickle"
 
     # Controlla se c'è già un csv generato con la stessa versione dello script:
-    if cache:
-        try:
-            csv_filename = next(filename.parent.glob(f"{filename.stem}_cache_*.csv"))
+    if cache and cached_filename.exists():
+        # Leggi cache:
+        all_fasi_concat = pd.read_pickle(cached_filename)
+        # all_fasi_concat = pd.read_hdf(cached_filename, key="df")
+    else:
+        logging.info(f"Re-importo {filename}, no cache per questa versione di script e dati")
+        # Leggi file:
+        df = pd.read_excel(filename, sheet_name=None)
 
-            # check current repo version:
-
-            file_hash, script_hash = csv_filename.stem.split("_cache_").split("_")
-
-        except StopIteration:
-            pass
-    
-    # Leggi file:
-    df = pd.read_excel(filename, sheet_name=None)
-
-    # Cicla su tutti i fogli del file per leggere le fasi:
-    all_fasi = []
-    for fase, df_fase in df.items():
-        if fase not in ["0-SIT&PROG(2022-24)_", "0-SIT&PROG(2022-24)_prova"]:
-            try:
-                costi_fase = _read_raw_budget_sheet(
-                    df_fase, filename.parent.name, fase, tipologie_skip=tipologie_skip
-                )
-            except (KeyError, TypeError, ValueError) as e:
-                if "['inc.%'] not found in axis" in str(e):
-                    logging.info(
-                        f"Skipping fase'{fase}' in '{filename}': no costi validi"
+        # Cicla su tutti i fogli del file per leggere le fasi:
+        all_fasi = []
+        for fase, df_fase in df.items():
+            if fase not in ["0-SIT&PROG(2022-24)_", "0-SIT&PROG(2022-24)_prova"]:
+                try:
+                    costi_fase = _read_raw_budget_sheet(
+                        df_fase, filename.parent.name, fase, tipologie_skip=tipologie_skip
                     )
-                    costi_fase = None
-                else:
-                    raise RuntimeError(
-                        f"Problem while analyzing fase '{fase}' of file '{filename}'"
-                    )
-                # to debug you can use notebook.
-                # Common problems are: 1. Leftovers on the gray lower part of the sheet; 2. typos replacing labels with eg numbers.from
+                except (KeyError, TypeError, ValueError) as e:
+                    if "['inc.%'] not found in axis" in str(e):
+                        logging.info(
+                            f"Skipping fase'{fase}' in '{filename}': no costi validi"
+                        )
+                        costi_fase = None
+                    else:
+                        raise RuntimeError(
+                            f"Problem while analyzing fase '{fase}' of file '{filename}'"
+                        )
+                    # to debug you can use notebook.
+                    # Common problems are: 1. Leftovers on the gray lower part of the sheet; 2. typos replacing labels with eg numbers.from
 
-            if costi_fase is not None:
-                if (
-                    not sum_fasi
-                ):  # ci interessa identita' delle fasi solo se non sommiamo:
-                    costi_fase[HEADERS["fase"]] = fase
+                if costi_fase is not None:
+                    if (
+                        not sum_fasi
+                    ):  # ci interessa identita' delle fasi solo se non sommiamo:
+                        costi_fase[HEADERS["fase"]] = fase
 
-                all_fasi.append(costi_fase)
+                    all_fasi.append(costi_fase)
 
-    # Aggreghiamo per cantiere per sommare voci costo identiche:
-    all_fasi_concat = pd.concat(all_fasi, axis=0, ignore_index=True)
+        # Aggreghiamo per cantiere per sommare voci costo identiche:
+        all_fasi_concat = pd.concat(all_fasi, axis=0, ignore_index=True)
+
+        if cache:
+            # Salva con versione dello script e dei file:
+            all_fasi_concat.to_pickle(cached_filename)
+            # all_fasi_concat.to_hdf(cached_filename, key="df", mode="w")
 
     if len(all_fasi_concat) == 0:
         logging.critical(rf"Nessuna voce costo valida in file {filename}")
@@ -189,7 +191,4 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
     else:
         all_fasi_concat = all_fasi_concat[SHEET_COL_SEQ_FASE]
 
-    if cache:
-        # Salva csv con versione dello script e del file:
-        pass
     return all_fasi_concat, consistency_report
