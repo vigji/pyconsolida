@@ -52,8 +52,8 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None):
     all_months = sorted(all_months)
 
     mesi_da_inizio = months_between_dates(data, all_months[0])
-    print(all_months)
-    print(mesi_da_inizio)
+    # print(all_months)
+    # print(mesi_da_inizio)
             
     # mese = int(mese_raw.replace(" ", "_").split("_")[-2])
     # anno = int(path.parent.parent.name)
@@ -78,7 +78,7 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None):
         loaded = pd.concat(loaded, axis=0, ignore_index=True)
     except ValueError:
         # raise RuntimeError(f"No valid files found in {path}")
-        print(f"No file validi in {path}")
+        # print(f"No file validi in {path}")
         logging.info(f"No file validi in {path}")
         return None, None
 

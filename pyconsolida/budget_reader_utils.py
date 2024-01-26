@@ -5,6 +5,8 @@ import numpy as np
 import git
 import hashlib
 from pathlib import Path
+import warnings
+
 
 from pyconsolida.sheet_specs import (
     HEADER_TRASLATIONS_DICT,
@@ -177,10 +179,14 @@ def _map_consistent_voce(df, key):
 
 def fix_voice_consistency(df):
     # Create report of inconsistent voices:
+
     consistence_report = df.groupby("codice").apply(_diagnose_consistence, "voce")
-    consistence_report = consistence_report[
-        consistence_report.apply(lambda x: type(x) is not float)
-    ]
+
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message="Boolean Series key will be reindexed to match DataFrame index.")
+        consistence_report = consistence_report[
+            consistence_report.apply(lambda x: type(x) is not float)
+        ]
 
     # Fix inconsistent voices:
     codice_mapping = df.groupby("codice").apply(_map_consistent_voce, "voce")

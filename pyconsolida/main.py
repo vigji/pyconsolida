@@ -4,11 +4,21 @@ The input folder (specified as DIRECTORY) has to be organized in the following w
 """
 
 from pyconsolida.aggregations import load_loop_and_concat
+from pyconsolida.delta import get_tabellone_delta, input_data
 import logging
 from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+
+
+t_start = input_data("inizio")
+t_stop = input_data("fine")
+
+assert t_start < t_stop, "La data di inizio deve essere precedente a quella di fine."
+assert t_start >= datetime(2021, 1, 1) and t_start <= datetime.now(), "La data di inizio deve essere compresa tra 01.2021 e ora"
+assert t_stop >= datetime(2021, 1, 1) and t_stop <= datetime.now(), "La data di fine deve essere compresa tra 01.2021 e ora"
+
 
 DIRECTORY = Path("/Users/vigji/Desktop/icop")
 PROGRESS_BAR = True
@@ -16,7 +26,7 @@ PROGRESS_BAR = True
 # timestamp for the filename:
 tstamp = datetime.now().strftime("%y%m%d-%H%M%S")
 
-dest_dir = DIRECTORY / "exports" / f"exported-luigi_all-months-_{tstamp}"
+dest_dir = DIRECTORY / "exports" / f"exported_da{t_start.date}-a-{t_stop.date}_{tstamp}"
 dest_dir.mkdir(exist_ok=True, parents=True)
 
 # Remove all handlers associated with the root logger object.
@@ -31,7 +41,7 @@ logging.basicConfig(
     level=logging.INFO,
 )
 
-logging.info("Lancio estrazione completa...")
+logging.info("Lancio estrazione...")
 
 # logger = logging.getLogger("deltaDec")
 # sequence of keys in the final table:
@@ -78,8 +88,13 @@ budget, reports = load_loop_and_concat(
     report_filename=str(dest_dir / f"{tstamp}_report_fixed_tipologie.xlsx"),
 )
 
-budget.to_excel(str(dest_dir / f"{tstamp}_tabellone.xlsx"))
-budget.to_hdf(str(dest_dir / f"{tstamp}_tabellone.h5"), key="budget")
+# Uncomment for debugging
+# budget.to_excel(str(dest_dir / f"{tstamp}_tabellone.xlsx"))
+# budget.to_pickle(str(dest_dir / f"{tstamp}_tabellone.pickle"))
+
+# Genera delta tabellone:
+delta_df = get_tabellone_delta(budget, t_start, t_stop)
+delta_df.to_excel(str(dest_dir / f"{tstamp}_delta_tabellone.xlsx"))
 
 if len(reports) > 0:
     reports.to_excel(str(dest_dir / f"{tstamp}_voci-costo_fix_report.xlsx"))
