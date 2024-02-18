@@ -1,13 +1,12 @@
-import pandas as pd
 from datetime import datetime
+
+import pandas as pd
 
 
 def input_data(data_name):
     string = input(f"Inserire mese {data_name} in formato MM.AAAA: ")
     month, year = string.split(".")
-    return datetime(year=int(year), 
-                    month=int(month),
-                    day=1)
+    return datetime(year=int(year), month=int(month), day=1)
 
 
 def get_tabellone_delta(tabellone_df, t_start_date, t_stop_date):
@@ -22,7 +21,7 @@ def get_tabellone_delta(tabellone_df, t_start_date, t_stop_date):
         Data di inizio.
     t_stop_date : datetime
         Data di fine.
-    
+
     Returns
     -------
     pd.DataFrame
@@ -31,14 +30,20 @@ def get_tabellone_delta(tabellone_df, t_start_date, t_stop_date):
     tabellone_df["data"] = tabellone_df["data"].apply(lambda x: x + "-01")
     tabellone_df["data"] = pd.to_datetime(tabellone_df["data"])
 
-    in_range = tabellone_df[(tabellone_df["data"] >= t_start_date) & (tabellone_df["data"] <= t_stop_date)]
+    in_range = tabellone_df[
+        (tabellone_df["data"] >= t_start_date) & (tabellone_df["data"] <= t_stop_date)
+    ]
 
     min_dates = in_range.groupby("commessa")["data"].min()
     max_dates = in_range.groupby("commessa")["data"].max()
 
     new_index = ["commessa", "codice", "fase"]
-    start_df = in_range[in_range["data"] == in_range["commessa"].map(min_dates)].set_index(new_index)
-    end_df = in_range[in_range["data"] == in_range["commessa"].map(max_dates)].set_index(new_index)
+    start_df = in_range[
+        in_range["data"] == in_range["commessa"].map(min_dates)
+    ].set_index(new_index)
+    end_df = in_range[
+        in_range["data"] == in_range["commessa"].map(max_dates)
+    ].set_index(new_index)
 
     # Align:
     start_al_df, end_al_df = start_df.align(end_df)
@@ -46,12 +51,24 @@ def get_tabellone_delta(tabellone_df, t_start_date, t_stop_date):
     # Prepare infos per tabellone:
     line_info_df = end_al_df.loc[:, ["tipologia", "voce", "u.m.", "costo u."]]
     # Trova indice campi rimasti nan:
-    missing_info_idx = line_info_df[line_info_df["tipologia"].apply(lambda x: type(x) is not str)].index
-    line_info_df.loc[missing_info_idx, :] = start_al_df.loc[missing_info_idx, ["tipologia", "voce", "u.m.", "costo u."]]
+    missing_info_idx = line_info_df[
+        line_info_df["tipologia"].apply(lambda x: type(x) is not str)
+    ].index
+    line_info_df.loc[missing_info_idx, :] = start_al_df.loc[
+        missing_info_idx, ["tipologia", "voce", "u.m.", "costo u."]
+    ]
 
     # Prepara e calcola delta:
     delta_cols = ["quantita", "imp.comp."]
-    all_data_cols = ["data",] + delta_cols + ["file-hash",]
+    all_data_cols = (
+        [
+            "data",
+        ]
+        + delta_cols
+        + [
+            "file-hash",
+        ]
+    )
     da_df = start_al_df.loc[:, all_data_cols]
     a_df = end_al_df.loc[:, all_data_cols]
 
@@ -65,6 +82,9 @@ def get_tabellone_delta(tabellone_df, t_start_date, t_stop_date):
     # tipologia, voce, u.m., costo u., DA:data, quantità, imp.comp; A - data, quantità, imp.com,; DELTA quantità, imp, a hash, da hash
 
     final_df = pd.concat([line_info_df, da_df, a_df, delta_df], axis=1)
-    final_df = final_df[[col for col in final_df.columns if "hash" not in col] + ['DA: file-hash', 'A: file-hash']]
+    final_df = final_df[
+        [col for col in final_df.columns if "hash" not in col]
+        + ["DA: file-hash", "A: file-hash"]
+    ]
 
     return final_df.reset_index()

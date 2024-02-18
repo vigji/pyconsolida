@@ -3,21 +3,25 @@
 The input folder (specified as DIRECTORY) has to be organized in the following way:
 """
 
-from pyconsolida.aggregations import load_loop_and_concat
-from pyconsolida.delta import get_tabellone_delta, input_data
 import logging
 from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 
+from pyconsolida.aggregations import load_loop_and_concat
+from pyconsolida.delta import get_tabellone_delta, input_data
 
 t_start = input_data("inizio")
 t_stop = input_data("fine")
 
 assert t_start < t_stop, "La data di inizio deve essere precedente a quella di fine."
-assert t_start >= datetime(2021, 1, 1) and t_start <= datetime.now(), "La data di inizio deve essere compresa tra 01.2021 e ora"
-assert t_stop >= datetime(2021, 1, 1) and t_stop <= datetime.now(), "La data di fine deve essere compresa tra 01.2021 e ora"
+assert (
+    t_start >= datetime(2021, 1, 1) and t_start <= datetime.now()
+), "La data di inizio deve essere compresa tra 01.2021 e ora"
+assert (
+    t_stop >= datetime(2021, 1, 1) and t_stop <= datetime.now()
+), "La data di fine deve essere compresa tra 01.2021 e ora"
 
 
 DIRECTORY = Path("/Users/vigji/Desktop/icop")
@@ -60,7 +64,7 @@ key_sequence = [
     "quantita",
     "imp. unit.",
     "imp.comp.",
-    "file-hash"
+    "file-hash",
 ]
 
 # IDs of works to exclude:

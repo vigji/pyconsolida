@@ -1,20 +1,24 @@
 import logging
+
 import pandas as pd
 from tqdm import tqdm
 
 from pyconsolida.budget_reader import read_full_budget
-from pyconsolida.posthoc_fix_utils import fix_tipologie_df
-from pyconsolida.folder_read_utils import months_between_dates, data_from_commessa_folder
 from pyconsolida.budget_reader_utils import get_folder_hash
+from pyconsolida.folder_read_utils import (
+    data_from_commessa_folder,
+    months_between_dates,
+)
+from pyconsolida.posthoc_fix_utils import fix_tipologie_df
 
 PATTERNS = [
-        "*nalis*",
-        "*RO-RO*",
-        "*ACC.QUADRO*",
-        "*SPE_GENE*",
-        "*SPE_BRANCH*",
-        "*NALIS*",
-    ]
+    "*nalis*",
+    "*RO-RO*",
+    "*ACC.QUADRO*",
+    "*SPE_GENE*",
+    "*SPE_BRANCH*",
+    "*NALIS*",
+]
 
 SUFFIXES = [".xls", ".xlsx"]
 logging.info(f"Patterns files analisi: {PATTERNS}")
@@ -44,17 +48,21 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None):
 
     files = find_all_files(path)
     commessa = path.name
-    # mese_raw = path.parent.name[:-1]
+    # mese_raw = path.parent.name[:-1]
     data = data_from_commessa_folder(path)
 
     # Tutte le cartelle di questa commessa:
-    all_months = [data_from_commessa_folder(folder) for folder in path_list if folder.name == commessa]
+    all_months = [
+        data_from_commessa_folder(folder)
+        for folder in path_list
+        if folder.name == commessa
+    ]
     all_months = sorted(all_months)
 
     mesi_da_inizio = months_between_dates(data, all_months[0])
     # print(all_months)
     # print(mesi_da_inizio)
-            
+
     # mese = int(mese_raw.replace(" ", "_").split("_")[-2])
     # anno = int(path.parent.parent.name)
     mese, anno = data.month, data.year
@@ -102,8 +110,12 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None):
 
 
 def load_loop_and_concat(
-    folders, key_sequence, tipologie_fix=None, tipologie_skip=None, progress_bar=True,
-    report_filename=None
+    folders,
+    key_sequence,
+    tipologie_fix=None,
+    tipologie_skip=None,
+    progress_bar=True,
+    report_filename=None,
 ):
     budgets = []
     reports = []
@@ -116,7 +128,9 @@ def load_loop_and_concat(
     for folder in wrapper(folders):
         logging.info(f"Loading {folder}")
         # try:
-        budget, rep = read_all_valid_budgets(folder, folders, tipologie_skip=tipologie_skip)
+        budget, rep = read_all_valid_budgets(
+            folder, folders, tipologie_skip=tipologie_skip
+        )
         # except ValueError as e:
         #     if "Nessuna voce costo valida in file" in str(e):
         #         logging.info(f"Nessuna voce costo valida per: {folder}; salto")
@@ -141,6 +155,6 @@ def load_loop_and_concat(
             tipologie_fix,
             report_filename=report_filename,
         )
-        logging.info(f"Correggo le tipologie...")
+        logging.info("Correggo le tipologie...")
 
     return budgets, reports

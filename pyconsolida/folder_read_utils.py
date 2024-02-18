@@ -1,5 +1,6 @@
-from dateutil.relativedelta import relativedelta
 from datetime import datetime
+
+from dateutil.relativedelta import relativedelta
 
 
 def data_from_commessa_folder(folder):
@@ -7,11 +8,25 @@ def data_from_commessa_folder(folder):
 
     anno = int(folder.parent.parent.name)
     mese_raw = folder.parent.name.replace(" ", "_").split("_")[-1].lower()
-    mese_map = dict(zip(
-        ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno",
-         "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"],
-        range(1, 13)
-    ))
+    mese_map = dict(
+        zip(
+            [
+                "gennaio",
+                "febbraio",
+                "marzo",
+                "aprile",
+                "maggio",
+                "giugno",
+                "luglio",
+                "agosto",
+                "settembre",
+                "ottobre",
+                "novembre",
+                "dicembre",
+            ],
+            range(1, 13),
+        )
+    )
     mese = mese_map[mese_raw]
 
     return datetime(anno, mese, 1)

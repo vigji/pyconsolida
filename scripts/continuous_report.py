@@ -3,12 +3,13 @@
 The input folder (specified as DIRECTORY) has to be organized in the following way:
 """
 
-from pyconsolida.aggregations import load_loop_and_concat
 import logging
 from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
+
+from pyconsolida.aggregations import load_loop_and_concat
 
 DIRECTORY = Path("/Users/vigji/Desktop/icop")
 PROGRESS_BAR = True
@@ -47,7 +48,7 @@ key_sequence = [
     "quantita",
     "imp. unit.",
     "imp.comp.",
-    "file-hash"
+    "file-hash",
 ]
 
 # IDs of works to exclude:

@@ -1,12 +1,10 @@
-import logging
-from math import e
-
-import numpy as np
-import git
 import hashlib
-from pathlib import Path
+import logging
 import warnings
+from pathlib import Path
 
+import git
+import numpy as np
 
 from pyconsolida.sheet_specs import (
     HEADER_TRASLATIONS_DICT,
@@ -106,13 +104,13 @@ def _is_tipologia_header(row, commessa, fase, tipologie_skip=None):
     """
     if type(row.iloc[1]) is not str:
         return False
-    
+
     try:
         int_commessa = int(commessa)
     except ValueError:
         int_commessa = int(commessa[:4])  # Alcune cartelle hanno XXX-Preventivo
 
-    # Esclusione a mano di alcuni casi specifici in cui pseudo headers di 
+    # Esclusione a mano di alcuni casi specifici in cui pseudo headers di
     # tipologia sono a uso interno commessa e quindi da evitare::
     if tipologie_skip is not None:
         conditions_matched = sum(
@@ -183,7 +181,10 @@ def fix_voice_consistency(df):
     consistence_report = df.groupby("codice").apply(_diagnose_consistence, "voce")
 
     with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", message="Boolean Series key will be reindexed to match DataFrame index.")
+        warnings.filterwarnings(
+            "ignore",
+            message="Boolean Series key will be reindexed to match DataFrame index.",
+        )
         consistence_report = consistence_report[
             consistence_report.apply(lambda x: type(x) is not float)
         ]
@@ -193,7 +194,6 @@ def fix_voice_consistency(df):
     # try:
     df["voce"] = df["codice"].map(codice_mapping)
     # except ValueError:
-
 
     return df, consistence_report
 
@@ -213,7 +213,7 @@ def get_folder_hash(folder_path):
     # Create a Path object for the folder
     folder = Path(folder_path)
     # Iterate over all files in the folder, including subfolders
-    for file_path in sorted(folder.rglob('*')):
+    for file_path in sorted(folder.rglob("*")):
         # escludo cache e emmpty folders:
         if file_path.is_file() and file_path.parent.name != "cached":
             # Hash each file

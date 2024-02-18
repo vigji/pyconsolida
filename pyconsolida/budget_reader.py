@@ -8,9 +8,9 @@ from pyconsolida.budget_reader_utils import (
     crop_costi,
     fix_types,
     fix_voice_consistency,
-    translate_df,
+    get_folder_hash,
     get_repo_version,
-    get_folder_hash
+    translate_df,
 )
 from pyconsolida.df_utils import sum_selected_columns
 from pyconsolida.sheet_specs import (
@@ -123,7 +123,9 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
 
     cached_folder = filename.parent / CACHE_FOLDERNAME
     cached_folder.mkdir(exist_ok=True)
-    cached_filename = cached_folder / f"{filename.stem}_cache_{folder_hash}_{script_hash}.pickle"
+    cached_filename = (
+        cached_folder / f"{filename.stem}_cache_{folder_hash}_{script_hash}.pickle"
+    )
 
     # Controlla se c'è già un csv generato con la stessa versione dello script:
     if cache and cached_filename.exists():
@@ -131,7 +133,9 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
         all_fasi_concat = pd.read_pickle(cached_filename)
         # all_fasi_concat = pd.read_hdf(cached_filename, key="df")
     else:
-        logging.info(f"Re-importo {filename}, no cache per questa versione di script e dati")
+        logging.info(
+            f"Re-importo {filename}, no cache per questa versione di script e dati"
+        )
         # Leggi file:
         df = pd.read_excel(filename, sheet_name=None)
 
@@ -141,7 +145,10 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
             if fase not in ["0-SIT&PROG(2022-24)_", "0-SIT&PROG(2022-24)_prova"]:
                 try:
                     costi_fase = _read_raw_budget_sheet(
-                        df_fase, filename.parent.name, fase, tipologie_skip=tipologie_skip
+                        df_fase,
+                        filename.parent.name,
+                        fase,
+                        tipologie_skip=tipologie_skip,
                     )
                 except (KeyError, TypeError, ValueError) as e:
                     if "['inc.%'] not found in axis" in str(e):
