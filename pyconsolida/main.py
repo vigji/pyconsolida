@@ -24,7 +24,7 @@ assert (
 ), "La data di fine deve essere compresa tra 01.2021 e ora"
 
 
-DIRECTORY = Path("/Users/vigji/Desktop/icop")
+DIRECTORY = Path("/myshare/cantieri")
 PROGRESS_BAR = True
 
 # timestamp for the filename:
