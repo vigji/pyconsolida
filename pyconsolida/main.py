@@ -24,7 +24,7 @@ assert (
 ), "La data di fine deve essere compresa tra 01.2021 e ora"
 
 
-DIRECTORY = Path("/myshare/cantieri")
+DIRECTORY = Path("/Users/vigji/Desktop/Dummy_cantieri")#Path("/myshare/cantieri")
 PROGRESS_BAR = True
 
 # timestamp for the filename:
@@ -90,11 +90,12 @@ budget, reports = load_loop_and_concat(
     tipologie_skip=tipologie_skip,
     progress_bar=PROGRESS_BAR,
     report_filename=str(dest_dir / f"{tstamp}_report_fixed_tipologie.xlsx"),
+    cache=True,
 )
 
 # Uncomment for debugging
 # budget.to_excel(str(dest_dir / f"{tstamp}_tabellone.xlsx"))
-# budget.to_pickle(str(dest_dir / f"{tstamp}_tabellone.pickle"))
+budget.to_pickle(str(dest_dir / f"{tstamp}_tabellone.pickle"))
 
 # Genera delta tabellone:
 delta_df = get_tabellone_delta(budget, t_start, t_stop)

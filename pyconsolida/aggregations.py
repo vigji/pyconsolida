@@ -34,7 +34,7 @@ def find_all_files(path):
     return possible_files
 
 
-def read_all_valid_budgets(path, path_list, tipologie_skip=None):
+def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
     """Read valid budget files from a folder.
 
     Parameters
@@ -75,7 +75,7 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None):
     # File multipli: ogni tanto si trovano eg SPE_GEN in un file separato.
     for file in files:
         fasi, cons_report = read_full_budget(
-            file, sum_fasi=False, tipologie_skip=tipologie_skip
+            file, sum_fasi=False, tipologie_skip=tipologie_skip, cache=cache
         )
 
         loaded.append(fasi)
@@ -116,6 +116,7 @@ def load_loop_and_concat(
     tipologie_skip=None,
     progress_bar=True,
     report_filename=None,
+    cache=True,
 ):
     budgets = []
     reports = []
@@ -129,7 +130,7 @@ def load_loop_and_concat(
         logging.info(f"Loading {folder}")
         # try:
         budget, rep = read_all_valid_budgets(
-            folder, folders, tipologie_skip=tipologie_skip
+            folder, folders, tipologie_skip=tipologie_skip, cache=cache
         )
         # except ValueError as e:
         #     if "Nessuna voce costo valida in file" in str(e):

@@ -121,18 +121,26 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
     script_hash = get_repo_version()
     folder_hash = get_folder_hash(filename.parent)
 
-    cached_folder = filename.parent / CACHE_FOLDERNAME
-    cached_folder.mkdir(exist_ok=True)
-    cached_filename = (
-        cached_folder / f"{filename.stem}_cache_{folder_hash}_{script_hash}.pickle"
-    )
+    if cache:
+        cached_folder = filename.parent / CACHE_FOLDERNAME
+        cached_folder.mkdir(exist_ok=True)
+        cached_filename = (
+            cached_folder / f"{filename.stem}_cache_{folder_hash}_{script_hash}.pickle"
+        )
 
     # Controlla se c'è già un csv generato con la stessa versione dello script:
     if cache and cached_filename.exists():
         # Leggi cache:
         all_fasi_concat = pd.read_pickle(cached_filename)
-        # all_fasi_concat = pd.read_hdf(cached_filename, key="df")
+        
+        # Remove all the other cached files that do not match the current script and folder version:
+        for cached_file in cached_folder.glob(f"{filename.stem}_cache_*.pickle"):
+            if cached_file != cached_filename:
+                cached_file.unlink()
+
     else:
+        # Remove previous cache:
+
         logging.info(
             f"Re-importo {filename}, no cache per questa versione di script e dati"
         )
@@ -183,11 +191,12 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
         logging.critical(rf"Nessuna voce costo valida in file {filename}")
 
     # Controlla consistenza descrizione voci di costo:
-    try:
-        all_fasi_concat, consistency_report = fix_voice_consistency(all_fasi_concat)
-    except ValueError:
-        logging.critical("Errore in fix_voice_consistency per file {filename}")
-        consistency_report = []
+    consistency_report = []
+    if len(all_fasi_concat) > 0:
+        try:
+            all_fasi_concat, consistency_report = fix_voice_consistency(all_fasi_concat)
+        except ValueError:
+            logging.critical("Errore in fix_voice_consistency per file {filename}")
 
     # Somma quantita' e importo complessivo:
     if sum_fasi:

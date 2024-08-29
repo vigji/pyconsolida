@@ -214,7 +214,7 @@ def get_folder_hash(folder_path):
     folder = Path(folder_path)
     # Iterate over all files in the folder, including subfolders
     for file_path in sorted(folder.rglob("*")):
-        # escludo cache e emmpty folders:
+        # escludo cache e empty folders:
         if file_path.is_file() and file_path.parent.name != "cached":
             # Hash each file
             with open(file_path, "rb") as f:

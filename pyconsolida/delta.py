@@ -38,9 +38,14 @@ def get_tabellone_delta(tabellone_df, t_start_date, t_stop_date):
     max_dates = in_range.groupby("commessa")["data"].max()
 
     new_index = ["commessa", "codice", "fase"]
+
     start_df = in_range[
         in_range["data"] == in_range["commessa"].map(min_dates)
-    ].set_index(new_index)
+    ]
+    # Ensure we do not subtract eg march 2024 if we are computing delta since december 2023
+    # If beginning does not match t_start, the actual starting point is 0: 
+    start_df = start_df[start_df["data"] == t_start_date].set_index(new_index)
+
     end_df = in_range[
         in_range["data"] == in_range["commessa"].map(max_dates)
     ].set_index(new_index)
