@@ -20,7 +20,7 @@ PATTERNS = [
     "*NALIS*",
 ]
 
-SUFFIXES = [".xls", ".xlsx"]
+SUFFIXES = [".xls", ".xlsx", ".xlsm"]
 logging.info(f"Patterns files analisi: {PATTERNS}")
 logging.info(f"Formati files analisi: {SUFFIXES}")
 
