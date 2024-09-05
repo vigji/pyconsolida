@@ -132,7 +132,7 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
     if cache and cached_filename.exists():
         # Leggi cache:
         all_fasi_concat = pd.read_pickle(cached_filename)
-        
+
         # Remove all the other cached files that do not match the current script and folder version:
         for cached_file in cached_folder.glob(f"{filename.stem}_cache_*.pickle"):
             if cached_file != cached_filename:

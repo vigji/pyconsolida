@@ -24,13 +24,15 @@ assert (
 ), "La data di fine deve essere compresa tra 01.2021 e ora"
 
 
-DIRECTORY = Path("/Users/vigji/Desktop/Dummy_cantieri")#Path("/myshare/cantieri")
+DIRECTORY = Path("/Users/vigji/Desktop/Dummy_cantieri")  # Path("/myshare/cantieri")
 PROGRESS_BAR = True
 
 # timestamp for the filename:
 tstamp = datetime.now().strftime("%y%m%d-%H%M%S")
 
-dest_dir = DIRECTORY / "exports" / f"exported_da{t_start.date()}-a-{t_stop.date()}_{tstamp}"
+dest_dir = (
+    DIRECTORY / "exports" / f"exported_da{t_start.date()}-a-{t_stop.date()}_{tstamp}"
+)
 dest_dir.mkdir(exist_ok=True, parents=True)
 
 # Remove all handlers associated with the root logger object.

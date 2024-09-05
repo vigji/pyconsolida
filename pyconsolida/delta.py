@@ -9,6 +9,23 @@ def input_data(data_name):
     return datetime(year=int(year), month=int(month), day=1)
 
 
+def _sum_repetitive_rows(input_df):
+    new_index = ["commessa", "codice", "fase"]
+    columns_to_sum = ["quantita", "imp.comp."]
+
+    other_cols = list(set(input_df.columns) - set(new_index + columns_to_sum))
+
+    # ensure we first sum together all rows with identical ["commessa", "codice", "fase"] for columns
+    # supporting summing, and we leave the rest as is - it will be filled with the first row
+    df_summed = input_df.loc[:, new_index + columns_to_sum]
+    df_summed = df_summed.groupby(new_index).sum()
+
+    # for the other columns, we just take the first row:
+    df_firstrow = input_df.loc[:, new_index + other_cols]
+    df_firstrow = df_firstrow.groupby(new_index).first()
+    return pd.concat([df_summed, df_firstrow], axis=1)
+
+
 def get_tabellone_delta(tabellone_df, t_start_date, t_stop_date):
     """Date due date di inizio e di fine e il tabellone con tutto il dataset, ritorna
     il delta di costi tra le due date.
@@ -37,18 +54,15 @@ def get_tabellone_delta(tabellone_df, t_start_date, t_stop_date):
     min_dates = in_range.groupby("commessa")["data"].min()
     max_dates = in_range.groupby("commessa")["data"].max()
 
-    new_index = ["commessa", "codice", "fase"]
-
-    start_df = in_range[
-        in_range["data"] == in_range["commessa"].map(min_dates)
-    ]
+    start_df = in_range[in_range["data"] == in_range["commessa"].map(min_dates)]
     # Ensure we do not subtract eg march 2024 if we are computing delta since december 2023
-    # If beginning does not match t_start, the actual starting point is 0: 
-    start_df = start_df[start_df["data"] == t_start_date].set_index(new_index)
+    # If beginning does not match t_start, the actual starting point is 0:
+    start_df = start_df[start_df["data"] == t_start_date]
 
-    end_df = in_range[
-        in_range["data"] == in_range["commessa"].map(max_dates)
-    ].set_index(new_index)
+    start_df = _sum_repetitive_rows(start_df)
+
+    end_df = in_range[in_range["data"] == in_range["commessa"].map(max_dates)]
+    end_df = _sum_repetitive_rows(end_df)
 
     # Align:
     start_al_df, end_al_df = start_df.align(end_df)
