@@ -130,3 +130,6 @@ dmypy.json
 
 .idea/*
 
+pyconsolida-env/
+.pyconsolida-env/
+
