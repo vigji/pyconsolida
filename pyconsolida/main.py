@@ -23,8 +23,7 @@ assert (
     t_stop >= datetime(2021, 1, 1) and t_stop <= datetime.now()
 ), "La data di fine deve essere compresa tra 01.2021 e ora"
 
-
-DIRECTORY = Path("/Users/vigji/Desktop/Dummy_cantieri")  # Path("/myshare/cantieri")
+DIRECTORY = Path("/myshare/cantieri")
 PROGRESS_BAR = True
 
 # timestamp for the filename:
