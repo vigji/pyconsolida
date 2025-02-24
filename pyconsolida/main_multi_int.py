@@ -12,7 +12,7 @@ import pandas as pd
 from pyconsolida.aggregations import load_loop_and_concat
 from pyconsolida.delta import get_tabellone_delta, input_data
 
-DIRECTORY = Path("/Users/vigji/Desktop/Dummy_cantieri")  # Path("/myshare/cantieri")
+DIRECTORY = Path("/myshare/cantieri")
 PROGRESS_BAR = True
 
 
