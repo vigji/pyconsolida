@@ -12,7 +12,8 @@ import pandas as pd
 from pyconsolida.aggregations import load_loop_and_concat
 from pyconsolida.delta import get_tabellone_delta, input_data, get_multiple_date_intervals
 
-DIRECTORY = Path("/Users/vigji/Desktop/Cantieri")  # Path("/myshare/cantieri")
+# Change depending on the machine:
+DIRECTORY = Path("/Users/vigji/Desktop/Cantieri") if Path("/Users/vigji").exists() else Path("/myshare/cantieri")
 PROGRESS_BAR = True
 OUTPUT_DIR = None  # Path("/Users/vigji/Desktop/exports")
 # LOAD_PICKLE = True
