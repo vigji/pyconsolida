@@ -2,6 +2,29 @@ from datetime import datetime
 
 import pandas as pd
 
+def get_multiple_date_intervals():
+    """Get multiple start-stop date intervals from user input."""
+    intervals = []
+    while True:
+        start = input_data("inizio")
+        stop = input_data("fine")
+        
+        # Validate dates
+        if not start < stop:
+            raise ValueError("La data di inizio deve essere precedente a quella di fine.")
+        if not (datetime(2021, 1, 1) <= start <= datetime.now()):
+            raise ValueError("La data di inizio deve essere compresa tra 01.2021 e ora")
+        if not (datetime(2021, 1, 1) <= stop <= datetime.now()):
+            raise ValueError("La data di fine deve essere compresa tra 01.2021 e ora")
+            
+        intervals.append((start, stop))
+        
+        if input("Vuoi aggiungere un altro intervallo? (s/n): ").lower() != 's':
+            break
+    
+    return intervals
+
+
 
 def input_data(data_name):
     string = input(f"Inserire mese {data_name} in formato MM.AAAA: ")
@@ -44,6 +67,7 @@ def get_tabellone_delta(tabellone_df, t_start_date, t_stop_date):
     pd.DataFrame
         Il delta di costi tra le due date.
     """
+
     def convert_to_datetime(x):
         if pd.isna(x):
             return pd.NaT
@@ -57,7 +81,6 @@ def get_tabellone_delta(tabellone_df, t_start_date, t_stop_date):
 
     # Convert dates
     tabellone_df["data"] = tabellone_df["data"].apply(convert_to_datetime)
-
     in_range = tabellone_df[
         (tabellone_df["data"] >= t_start_date) & (tabellone_df["data"] <= t_stop_date)
     ]

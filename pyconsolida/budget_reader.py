@@ -19,8 +19,8 @@ from pyconsolida.sheet_specs import (
     SHEET_COL_SEQ,
     SHEET_COL_SEQ_FASE,
     TO_AGGREGATE,
+    EXCLUDED_FASI,
 )
-
 
 def _is_valid_costo_code(val):
     """Ritorna True se il valore e' un codice costo valido, False altrimenti."""
@@ -117,9 +117,13 @@ def _read_raw_budget_sheet(df, commessa, fase, tipologie_skip=None):
 
 def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
     # Define cached filename:
+    import time
+    start_time = time.time()
     CACHE_FOLDERNAME = "cached"
     script_hash = get_repo_version()
     folder_hash = get_folder_hash(filename.parent)
+
+    print(f"Hash computation time: {(time.time() - start_time)*1000:.2f}ms")
 
     if cache:
         cached_folder = filename.parent / CACHE_FOLDERNAME
@@ -127,30 +131,34 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
         cached_filename = (
             cached_folder / f"{filename.stem}_cache_{folder_hash}_{script_hash}.pickle"
         )
+        
 
     # Controlla se c'è già un csv generato con la stessa versione dello script:
     if cache and cached_filename.exists():
         # Leggi cache:
         all_fasi_concat = pd.read_pickle(cached_filename)
+        print(f"Cache loading time: {(time.time() - start_time)*1000:.2f}ms")
 
         # Remove all the other cached files that do not match the current script and folder version:
         for cached_file in cached_folder.glob(f"{filename.stem}_cache_*.pickle"):
             if cached_file != cached_filename:
                 cached_file.unlink()
 
+        print(f"Cache cleaning time: {(time.time() - start_time)*1000:.2f}ms")
+
     else:
         # Remove previous cache:
-
         logging.info(
             f"Re-importo {filename}, no cache per questa versione di script e dati"
         )
         # Leggi file:
         df = pd.read_excel(filename, sheet_name=None)
+        print(f"Excel reading time: {(time.time() - start_time)*1000:.2f}ms")
 
         # Cicla su tutti i fogli del file per leggere le fasi:
         all_fasi = []
         for fase, df_fase in df.items():
-            if fase not in ["0-SIT&PROG(2022-24)_", "0-SIT&PROG(2022-24)_prova"]:
+            if fase not in :
                 try:
                     costi_fase = _read_raw_budget_sheet(
                         df_fase,
@@ -178,14 +186,17 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
                         costi_fase[HEADERS["fase"]] = fase
 
                     all_fasi.append(costi_fase)
+        print(f"Lettura fasi time: {(time.time() - start_time)*1000:.2f}ms")
 
         # Aggreghiamo per cantiere per sommare voci costo identiche:
         all_fasi_concat = pd.concat(all_fasi, axis=0, ignore_index=True)
+        print(f"Concatenazione fasi time: {(time.time() - start_time)*1000:.2f}ms")
 
         if cache:
             # Salva con versione dello script e dei file:
             all_fasi_concat.to_pickle(cached_filename)
             # all_fasi_concat.to_hdf(cached_filename, key="df", mode="w")
+        print(f"Salvataggio cache time: {(time.time() - start_time)*1000:.2f}ms")
 
     if len(all_fasi_concat) == 0:
         logging.critical(rf"Nessuna voce costo valida in file {filename}")
@@ -197,6 +208,7 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
             all_fasi_concat, consistency_report = fix_voice_consistency(all_fasi_concat)
         except ValueError:
             logging.critical("Errore in fix_voice_consistency per file {filename}")
+        print(f"Consistenza descrizione voci di costo time: {(time.time() - start_time)*1000:.2f}ms")
 
     # Somma quantita' e importo complessivo:
     if sum_fasi:
@@ -204,7 +216,9 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
             all_fasi_concat, HEADERS["codice"], TO_AGGREGATE
         )
         all_fasi_concat = all_fasi_concat[SHEET_COL_SEQ]
+        print(f"Somma quantita' e importo complessivo time: {(time.time() - start_time)*1000:.2f}ms")
     else:
         all_fasi_concat = all_fasi_concat[SHEET_COL_SEQ_FASE]
-
+        print(f"Selezione fasi time: {(time.time() - start_time)*1000:.2f}ms")
+    print(f"Final time: {(time.time() - start_time)*1000:.2f}ms")
     return all_fasi_concat, consistency_report

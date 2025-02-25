@@ -5,6 +5,8 @@ from pathlib import Path
 
 import git
 import numpy as np
+from functools import lru_cache
+
 
 from pyconsolida.sheet_specs import (
     HEADER_TRASLATIONS_DICT,
@@ -177,7 +179,6 @@ def _map_consistent_voce(df, key):
 
 def fix_voice_consistency(df):
     # Create report of inconsistent voices:
-
     consistence_report = df.groupby("codice").apply(_diagnose_consistence, "voce")
 
     with warnings.catch_warnings():
@@ -198,6 +199,7 @@ def fix_voice_consistency(df):
     return df, consistence_report
 
 
+@lru_cache(maxsize=1)
 def get_repo_version():
     N_HASH_CHARS = 6
 
@@ -221,3 +223,14 @@ def get_folder_hash(folder_path):
                 for byte_block in iter(lambda: f.read(4096), b""):
                     sha256_hash.update(byte_block)
     return sha256_hash.hexdigest()[:N_HASH_CHARS]
+
+
+if __name__ == "__main__":
+    # test caching behavior:
+    import time
+    start = time.time()
+    print(get_repo_version())
+    print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
+    start = time.time()
+    print(get_repo_version())
+    print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
