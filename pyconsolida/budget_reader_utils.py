@@ -207,7 +207,7 @@ def get_repo_version():
     sha = repo.head.object.hexsha
     return sha[:N_HASH_CHARS]
 
-
+@lru_cache(maxsize=1)
 def get_folder_hash(folder_path):
     """Compute SHA-256 hash of all files in a folder using pathlib."""
     N_HASH_CHARS = 10
@@ -225,6 +225,15 @@ def get_folder_hash(folder_path):
     return sha256_hash.hexdigest()[:N_HASH_CHARS]
 
 
+def get_args_hash(**kwargs):
+    """Compute SHA-256 hash of all arguments."""
+    N_HASH_CHARS = 10
+    sha256_hash = hashlib.sha256()
+    for key, value in kwargs.items():
+        sha256_hash.update(f"{key}:{value}".encode("utf-8"))
+    return sha256_hash.hexdigest()[:N_HASH_CHARS]
+
+
 if __name__ == "__main__":
     # test caching behavior:
     import time
@@ -234,3 +243,19 @@ if __name__ == "__main__":
     start = time.time()
     print(get_repo_version())
     print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
+
+    # test args hash:
+    import pandas as pd
+    import numpy as np
+    df = pd.DataFrame({"a": [1, 2, 3, 1], "b": [4, 5, 6, 7]})
+    large_df = pd.DataFrame({"a": np.full(1000000, dtype=str, fill_value="a"), 
+                             "b": np.random.rand(1000000)})
+    large_matrix = np.random.rand(1000, 1000)
+
+    start = time.time()
+    print(get_args_hash(a=1, df=df, matrix=large_matrix))
+    print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
+    start = time.time()
+    print(get_args_hash(a=1, df=df, matrix=large_matrix))
+    print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
+

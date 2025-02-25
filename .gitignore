@@ -133,3 +133,8 @@ dmypy.json
 pyconsolida-env/
 .pyconsolida-env/
 
+
+*.parquet
+*.pkl
+*.feather
+*.h5

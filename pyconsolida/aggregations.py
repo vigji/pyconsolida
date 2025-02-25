@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 from tqdm import tqdm
 
-from pyconsolida.budget_reader import read_full_budget
+from pyconsolida.budget_reader import read_full_budget_cached
 from pyconsolida.budget_reader_utils import get_folder_hash
 from pyconsolida.folder_read_utils import (
     data_from_commessa_folder,
@@ -74,7 +74,7 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
 
     # File multipli: ogni tanto si trovano eg SPE_GEN in un file separato.
     for file in files:
-        fasi, cons_report = read_full_budget(
+        fasi, cons_report = read_full_budget_cached(
             file, sum_fasi=False, tipologie_skip=tipologie_skip, cache=cache
         )
 

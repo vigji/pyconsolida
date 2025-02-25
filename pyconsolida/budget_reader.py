@@ -2,7 +2,8 @@ import logging
 
 import numpy as np
 import pandas as pd
-
+import warnings
+import pickle
 from pyconsolida.budget_reader_utils import (
     add_tipologia_column,
     crop_costi,
@@ -11,6 +12,7 @@ from pyconsolida.budget_reader_utils import (
     get_folder_hash,
     get_repo_version,
     translate_df,
+    get_args_hash,
 )
 from pyconsolida.df_utils import sum_selected_columns
 from pyconsolida.sheet_specs import (
@@ -115,91 +117,51 @@ def _read_raw_budget_sheet(df, commessa, fase, tipologie_skip=None):
     return voci_costo
 
 
-def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
-    # Define cached filename:
-    import time
-    start_time = time.time()
-    CACHE_FOLDERNAME = "cached"
-    script_hash = get_repo_version()
-    folder_hash = get_folder_hash(filename.parent)
-
-    print(f"Hash computation time: {(time.time() - start_time)*1000:.2f}ms")
-
-    if cache:
-        cached_folder = filename.parent / CACHE_FOLDERNAME
-        cached_folder.mkdir(exist_ok=True)
-        cached_filename = (
-            cached_folder / f"{filename.stem}_cache_{folder_hash}_{script_hash}.pickle"
-        )
-        
-
-    # Controlla se c'è già un csv generato con la stessa versione dello script:
-    if cache and cached_filename.exists():
-        # Leggi cache:
-        all_fasi_concat = pd.read_pickle(cached_filename)
-        print(f"Cache loading time: {(time.time() - start_time)*1000:.2f}ms")
-
-        # Remove all the other cached files that do not match the current script and folder version:
-        for cached_file in cached_folder.glob(f"{filename.stem}_cache_*.pickle"):
-            if cached_file != cached_filename:
-                cached_file.unlink()
-
-        print(f"Cache cleaning time: {(time.time() - start_time)*1000:.2f}ms")
-
-    else:
-        # Remove previous cache:
-        logging.info(
-            f"Re-importo {filename}, no cache per questa versione di script e dati"
-        )
-        # Leggi file:
+def _read_full_budget(filename, sum_fasi=True, tipologie_skip=None):
+    log_messages = []
+    
+    # Leggi file:
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
         df = pd.read_excel(filename, sheet_name=None)
-        print(f"Excel reading time: {(time.time() - start_time)*1000:.2f}ms")
 
-        # Cicla su tutti i fogli del file per leggere le fasi:
-        all_fasi = []
-        for fase, df_fase in df.items():
-            if fase not in :
-                try:
-                    costi_fase = _read_raw_budget_sheet(
-                        df_fase,
-                        filename.parent.name,
-                        fase,
-                        tipologie_skip=tipologie_skip,
+    # Cicla su tutti i fogli del file per leggere le fasi:
+    all_fasi = []
+    for fase, df_fase in df.items():
+        if fase not in EXCLUDED_FASI:
+            try:
+                costi_fase = _read_raw_budget_sheet(
+                    df_fase,
+                    filename.parent.name,
+                    fase,
+                    tipologie_skip=tipologie_skip,
+                )
+            except (KeyError, TypeError, ValueError) as e:
+                if "['inc.%'] not found in axis" in str(e):
+                    log_messages.append(
+                        f"Skipping fase'{fase}' in '{filename}': no costi validi"
                     )
-                except (KeyError, TypeError, ValueError) as e:
-                    if "['inc.%'] not found in axis" in str(e):
-                        logging.info(
-                            f"Skipping fase'{fase}' in '{filename}': no costi validi"
-                        )
-                        costi_fase = None
-                    else:
-                        raise RuntimeError(
-                            f"Problem while analyzing fase '{fase}' of file '{filename}'"
-                        )
-                    # to debug you can use notebook.
-                    # Common problems are: 1. Leftovers on the gray lower part of the sheet; 2. typos replacing labels with eg numbers.from
+                    costi_fase = None
+                else:
+                    raise RuntimeError(
+                        f"Problem while analyzing fase '{fase}' of file '{filename}'"
+                    )
+                # to debug you can use notebook.
+                # Common problems are: 1. Leftovers on the gray lower part of the sheet; 2. typos replacing labels with eg numbers.from
 
-                if costi_fase is not None:
-                    if (
-                        not sum_fasi
-                    ):  # ci interessa identita' delle fasi solo se non sommiamo:
-                        costi_fase[HEADERS["fase"]] = fase
+            if costi_fase is not None:
+                if (
+                    not sum_fasi
+                ):  # ci interessa identita' delle fasi solo se non sommiamo:
+                    costi_fase[HEADERS["fase"]] = fase
 
-                    all_fasi.append(costi_fase)
-        print(f"Lettura fasi time: {(time.time() - start_time)*1000:.2f}ms")
+                all_fasi.append(costi_fase)
 
-        # Aggreghiamo per cantiere per sommare voci costo identiche:
-        all_fasi_concat = pd.concat(all_fasi, axis=0, ignore_index=True)
-        print(f"Concatenazione fasi time: {(time.time() - start_time)*1000:.2f}ms")
-
-        if cache:
-            # Salva con versione dello script e dei file:
-            all_fasi_concat.to_pickle(cached_filename)
-            # all_fasi_concat.to_hdf(cached_filename, key="df", mode="w")
-        print(f"Salvataggio cache time: {(time.time() - start_time)*1000:.2f}ms")
+    # Aggreghiamo per cantiere per sommare voci costo identiche:
+    all_fasi_concat = pd.concat(all_fasi, axis=0, ignore_index=True)
 
     if len(all_fasi_concat) == 0:
-        logging.critical(rf"Nessuna voce costo valida in file {filename}")
+        log_messages.append(rf"Nessuna voce costo valida in file {filename}")
 
     # Controlla consistenza descrizione voci di costo:
     consistency_report = []
@@ -207,8 +169,7 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
         try:
             all_fasi_concat, consistency_report = fix_voice_consistency(all_fasi_concat)
         except ValueError:
-            logging.critical("Errore in fix_voice_consistency per file {filename}")
-        print(f"Consistenza descrizione voci di costo time: {(time.time() - start_time)*1000:.2f}ms")
+            log_messages.append(f"Errore in fix_voice_consistency per file {filename}")
 
     # Somma quantita' e importo complessivo:
     if sum_fasi:
@@ -216,9 +177,63 @@ def read_full_budget(filename, sum_fasi=True, tipologie_skip=None, cache=True):
             all_fasi_concat, HEADERS["codice"], TO_AGGREGATE
         )
         all_fasi_concat = all_fasi_concat[SHEET_COL_SEQ]
-        print(f"Somma quantita' e importo complessivo time: {(time.time() - start_time)*1000:.2f}ms")
     else:
         all_fasi_concat = all_fasi_concat[SHEET_COL_SEQ_FASE]
-        print(f"Selezione fasi time: {(time.time() - start_time)*1000:.2f}ms")
-    print(f"Final time: {(time.time() - start_time)*1000:.2f}ms")
+
+    return all_fasi_concat, consistency_report, log_messages
+
+
+def read_full_budget_cached(filename, sum_fasi=True, tipologie_skip=None, cache=True):
+    """Read the full budget from a file, using caching."""
+
+    # log_messages.append(f"Re-importo {filename}, no cache per questa versione di script e dati")
+
+    # Define cached filename:
+    CACHE_FOLDERNAME = "cached"
+    script_hash = get_repo_version()
+    folder_hash = get_folder_hash(filename.parent)
+    args_hash = get_args_hash(sum_fasi=sum_fasi, 
+                              tipologie_skip=tipologie_skip
+                              )
+
+    if cache:
+        cached_folder = filename.parent / CACHE_FOLDERNAME
+        cached_folder.mkdir(exist_ok=True)
+        cached_filename_base = (
+            cached_folder / f"{filename.stem}_cache_{args_hash}_{folder_hash}_{script_hash}"
+        )    
+        all_fasi_filename = cached_folder / f"{cached_filename_base.stem}.pickle"
+        consistency_filename = cached_folder / f"{cached_filename_base.stem}_consistency.pickle"
+        log_filename = cached_folder / f"{cached_filename_base.stem}_log.txt"
+
+    # Controlla se c'è già un csv generato con la stessa versione dello script:
+    if cache and all([f.exists() for f in [all_fasi_filename, consistency_filename, log_filename]]):
+        logging.info(f"Leggo cache da {all_fasi_filename}")
+        # Leggi cache:
+        all_fasi_concat = pd.read_pickle(all_fasi_filename)
+        consistency_report = pd.read_pickle(consistency_filename)
+        with open(log_filename, "r") as f:
+            log_messages = f.readlines()
+        
+        # Remove all the other cached files that do not match the current script and folder version:
+        for cached_file in cached_folder.glob(f"{filename.stem}_cache_{args_hash}*.pickle"):
+            if cached_file not in [all_fasi_filename, consistency_filename, log_filename]:
+                cached_file.unlink()
+
+    else:
+        logging.info(f"Reading from scratch {filename}")
+        all_fasi_concat, consistency_report, log_messages = _read_full_budget(filename, sum_fasi, tipologie_skip)
+
+    if cache:
+        # Salva con versione dello script e dei file:
+        all_fasi_concat.to_pickle(all_fasi_filename)
+
+        pickle.dump(consistency_report, open(consistency_filename, "wb"))
+        with open(log_filename, "w") as f:
+            for log_message in log_messages:
+                f.write(log_message)
+
+    for log_message in log_messages:
+        logging.info(log_message)
+
     return all_fasi_concat, consistency_report
