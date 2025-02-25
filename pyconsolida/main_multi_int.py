@@ -10,46 +10,29 @@ from pathlib import Path
 import pandas as pd
 
 from pyconsolida.aggregations import load_loop_and_concat
-from pyconsolida.delta import get_tabellone_delta, input_data
+from pyconsolida.delta import get_tabellone_delta, input_data, get_multiple_date_intervals
 
-DIRECTORY = Path("/myshare/cantieri")
+DIRECTORY = Path("/Users/vigji/Desktop/Cantieri")  # Path("/myshare/cantieri")
 PROGRESS_BAR = True
+OUTPUT_DIR = None  # Path("/Users/vigji/Desktop/exports")
+# LOAD_PICKLE = True
 
 
-def _get_date_intervals():
-    """Get multiple start-stop date intervals from user input."""
-    intervals = []
-    while True:
-        start = input_data("inizio")
-        stop = input_data("fine")
-        
-        # Validate dates
-        if not start < stop:
-            raise ValueError("La data di inizio deve essere precedente a quella di fine.")
-        if not (datetime(2021, 1, 1) <= start <= datetime.now()):
-            raise ValueError("La data di inizio deve essere compresa tra 01.2021 e ora")
-        if not (datetime(2021, 1, 1) <= stop <= datetime.now()):
-            raise ValueError("La data di fine deve essere compresa tra 01.2021 e ora")
-            
-        intervals.append((start, stop))
-        
-        if input("Vuoi aggiungere un altro intervallo? (s/n): ").lower() != 's':
-            break
-    
-    return intervals
-
-
-# timestamp for the filename:
+# timestamp for the folder name:
 tstamp = datetime.now().strftime("%y%m%d-%H%M%S")
 
 # Get all intervals from user
-date_intervals = _get_date_intervals()
+date_intervals = get_multiple_date_intervals()
 
 # Create destination directory using first interval for naming
-first_start, first_stop = date_intervals[0]
-dest_dir = (
-    DIRECTORY / "exports" / f"exported_da{first_start.date()}-a-{first_stop.date()}_{tstamp}"
-)
+# first_start, first_stop = date_intervals[0]
+if OUTPUT_DIR is None:
+    dest_dir = (
+        DIRECTORY / "exports" / f"exported_{tstamp}"
+    )
+else:
+    dest_dir = OUTPUT_DIR / f"exported_{tstamp}"
+
 dest_dir.mkdir(exist_ok=True, parents=True)
 
 # Remove all handlers associated with the root logger object.
@@ -66,7 +49,6 @@ logging.basicConfig(
 
 logging.info("Lancio estrazione...")
 
-# logger = logging.getLogger("deltaDec")
 # sequence of keys in the final table:
 key_sequence = [
     "commessa",
@@ -96,12 +78,15 @@ logging.info(f"File di correzione tipologie: {DIRECTORY / 'tipologie_fix.xlsx'}"
 tipologie_skip = pd.read_excel(DIRECTORY / "tipologie_skip.xlsx")
 logging.info(f"File di tipologie da saltare: {DIRECTORY / 'tipologie_fix.xlsx'}")
 
+# Cerca cartelle con ultima versione della formattazione
 all_folders = list(DIRECTORY.glob("202[1-9]/[0-1][0-9]_*/*"))
-# 2021 e 2022 formattazione diversa:
+
+# 2021 e 2022 seguono formattazione diversa:
 all_folders += list(DIRECTORY.glob("202[1-9]/*_[0-1][0-9]*/[0-9][0-9][0-9][0-9]*"))
 all_folders = sorted([f for f in all_folders if f.is_dir()])
 logging.info(f"Cartelle da analizzare trovate: {len(all_folders)}")
 
+# Main loop:
 budget, reports = load_loop_and_concat(
     all_folders,
     key_sequence,
@@ -115,6 +100,7 @@ budget, reports = load_loop_and_concat(
 # Uncomment for debugging
 # budget.to_excel(str(dest_dir / f"{tstamp}_tabellone.xlsx"))
 budget.to_pickle(str(dest_dir / f"{tstamp}_tabellone.pickle"))
+reports.to_pickle(str(dest_dir / f"{tstamp}_reports.pickle"))
 
 # Generate delta for each interval
 for start, stop in date_intervals:
