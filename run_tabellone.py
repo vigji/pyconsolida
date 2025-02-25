@@ -13,7 +13,6 @@ from pyconsolida.aggregations import load_loop_and_concat
 from pyconsolida.delta import (
     get_multiple_date_intervals,
     get_tabellone_delta,
-    input_data,
 )
 
 # Change depending on the machine:
@@ -105,7 +104,6 @@ budget, reports = load_loop_and_concat(
 )
 
 # Uncomment for debugging
-# budget.to_excel(str(dest_dir / f"{tstamp}_tabellone.xlsx"))
 budget.to_pickle(str(dest_dir / f"{tstamp}_tabellone.pickle"))
 reports.to_pickle(str(dest_dir / f"{tstamp}_reports.pickle"))
 
