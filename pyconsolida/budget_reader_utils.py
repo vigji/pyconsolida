@@ -1,12 +1,11 @@
 import hashlib
 import logging
 import warnings
+from functools import lru_cache
 from pathlib import Path
 
 import git
 import numpy as np
-from functools import lru_cache
-
 
 from pyconsolida.sheet_specs import (
     HEADER_TRASLATIONS_DICT,
@@ -207,6 +206,7 @@ def get_repo_version():
     sha = repo.head.object.hexsha
     return sha[:N_HASH_CHARS]
 
+
 @lru_cache(maxsize=1)
 def get_folder_hash(folder_path):
     """Compute SHA-256 hash of all files in a folder using pathlib."""
@@ -237,6 +237,7 @@ def get_args_hash(**kwargs):
 if __name__ == "__main__":
     # test caching behavior:
     import time
+
     start = time.time()
     print(get_repo_version())
     print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
@@ -245,11 +246,13 @@ if __name__ == "__main__":
     print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
 
     # test args hash:
-    import pandas as pd
     import numpy as np
+    import pandas as pd
+
     df = pd.DataFrame({"a": [1, 2, 3, 1], "b": [4, 5, 6, 7]})
-    large_df = pd.DataFrame({"a": np.full(1000000, dtype=str, fill_value="a"), 
-                             "b": np.random.rand(1000000)})
+    large_df = pd.DataFrame(
+        {"a": np.full(1000000, dtype=str, fill_value="a"), "b": np.random.rand(1000000)}
+    )
     large_matrix = np.random.rand(1000, 1000)
 
     start = time.time()
@@ -258,4 +261,3 @@ if __name__ == "__main__":
     start = time.time()
     print(get_args_hash(a=1, df=df, matrix=large_matrix))
     print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
-

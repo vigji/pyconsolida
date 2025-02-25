@@ -1,28 +1,30 @@
 import logging
+import pickle
+import warnings
 
 import numpy as np
 import pandas as pd
-import warnings
-import pickle
+
 from pyconsolida.budget_reader_utils import (
     add_tipologia_column,
     crop_costi,
     fix_types,
     fix_voice_consistency,
+    get_args_hash,
     get_folder_hash,
     get_repo_version,
     translate_df,
-    get_args_hash,
 )
 from pyconsolida.df_utils import sum_selected_columns
 from pyconsolida.sheet_specs import (
     CODICE_COSTO_COL,
+    EXCLUDED_FASI,
     HEADERS,
     SHEET_COL_SEQ,
     SHEET_COL_SEQ_FASE,
     TO_AGGREGATE,
-    EXCLUDED_FASI,
 )
+
 
 def _is_valid_costo_code(val):
     """Ritorna True se il valore e' un codice costo valido, False altrimenti."""
@@ -119,7 +121,7 @@ def _read_raw_budget_sheet(df, commessa, fase, tipologie_skip=None):
 
 def _read_full_budget(filename, sum_fasi=True, tipologie_skip=None):
     log_messages = []
-    
+
     # Leggi file:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -192,37 +194,48 @@ def read_full_budget_cached(filename, sum_fasi=True, tipologie_skip=None, cache=
     CACHE_FOLDERNAME = "cached"
     script_hash = get_repo_version()
     folder_hash = get_folder_hash(filename.parent)
-    args_hash = get_args_hash(sum_fasi=sum_fasi, 
-                              tipologie_skip=tipologie_skip
-                              )
+    args_hash = get_args_hash(sum_fasi=sum_fasi, tipologie_skip=tipologie_skip)
 
     if cache:
         cached_folder = filename.parent / CACHE_FOLDERNAME
         cached_folder.mkdir(exist_ok=True)
         cached_filename_base = (
-            cached_folder / f"{filename.stem}_cache_{args_hash}_{folder_hash}_{script_hash}"
-        )    
+            cached_folder
+            / f"{filename.stem}_cache_{args_hash}_{folder_hash}_{script_hash}"
+        )
         all_fasi_filename = cached_folder / f"{cached_filename_base.stem}.pickle"
-        consistency_filename = cached_folder / f"{cached_filename_base.stem}_consistency.pickle"
+        consistency_filename = (
+            cached_folder / f"{cached_filename_base.stem}_consistency.pickle"
+        )
         log_filename = cached_folder / f"{cached_filename_base.stem}_log.txt"
 
     # Controlla se c'è già un csv generato con la stessa versione dello script:
-    if cache and all([f.exists() for f in [all_fasi_filename, consistency_filename, log_filename]]):
+    if cache and all(
+        [f.exists() for f in [all_fasi_filename, consistency_filename, log_filename]]
+    ):
         logging.info(f"Leggo cache da {all_fasi_filename}")
         # Leggi cache:
         all_fasi_concat = pd.read_pickle(all_fasi_filename)
         consistency_report = pd.read_pickle(consistency_filename)
         with open(log_filename, "r") as f:
             log_messages = f.readlines()
-        
+
         # Remove all the other cached files that do not match the current script and folder version:
-        for cached_file in cached_folder.glob(f"{filename.stem}_cache_{args_hash}*.pickle"):
-            if cached_file not in [all_fasi_filename, consistency_filename, log_filename]:
+        for cached_file in cached_folder.glob(
+            f"{filename.stem}_cache_{args_hash}*.pickle"
+        ):
+            if cached_file not in [
+                all_fasi_filename,
+                consistency_filename,
+                log_filename,
+            ]:
                 cached_file.unlink()
 
     else:
         logging.info(f"Reading from scratch {filename}")
-        all_fasi_concat, consistency_report, log_messages = _read_full_budget(filename, sum_fasi, tipologie_skip)
+        all_fasi_concat, consistency_report, log_messages = _read_full_budget(
+            filename, sum_fasi, tipologie_skip
+        )
 
     if cache:
         # Salva con versione dello script e dei file:

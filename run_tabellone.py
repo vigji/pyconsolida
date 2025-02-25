@@ -10,10 +10,18 @@ from pathlib import Path
 import pandas as pd
 
 from pyconsolida.aggregations import load_loop_and_concat
-from pyconsolida.delta import get_tabellone_delta, input_data, get_multiple_date_intervals
+from pyconsolida.delta import (
+    get_multiple_date_intervals,
+    get_tabellone_delta,
+    input_data,
+)
 
 # Change depending on the machine:
-DIRECTORY = Path("/Users/vigji/Desktop/Cantieri_test") if Path("/Users/vigji").exists() else Path("/myshare/cantieri")
+DIRECTORY = (
+    Path("/Users/vigji/Desktop/Cantieri_test")
+    if Path("/Users/vigji").exists()
+    else Path("/myshare/cantieri")
+)
 PROGRESS_BAR = True
 OUTPUT_DIR = None  # Path("/Users/vigji/Desktop/exports")
 # LOAD_PICKLE = True
@@ -28,9 +36,7 @@ date_intervals = get_multiple_date_intervals()
 # Create destination directory using first interval for naming
 # first_start, first_stop = date_intervals[0]
 if OUTPUT_DIR is None:
-    dest_dir = (
-        DIRECTORY / "exports" / f"exported_{tstamp}"
-    )
+    dest_dir = DIRECTORY / "exports" / f"exported_{tstamp}"
 else:
     dest_dir = OUTPUT_DIR / f"exported_{tstamp}"
 
@@ -107,7 +113,7 @@ reports.to_pickle(str(dest_dir / f"{tstamp}_reports.pickle"))
 for start, stop in date_intervals:
     interval_name = f"da{start.date()}-a-{stop.date()}"
     logging.info(f"Calcolo delta per intervallo {interval_name}")
-    
+
     delta_df = get_tabellone_delta(budget, start, stop)
     delta_df.to_excel(str(dest_dir / f"{tstamp}_delta_tabellone_{interval_name}.xlsx"))
 
