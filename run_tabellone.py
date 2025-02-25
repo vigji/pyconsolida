@@ -10,10 +10,7 @@ from pathlib import Path
 import pandas as pd
 
 from pyconsolida.aggregations import load_loop_and_concat
-from pyconsolida.delta import (
-    get_multiple_date_intervals,
-    get_tabellone_delta,
-)
+from pyconsolida.delta import get_multiple_date_intervals, get_tabellone_delta
 
 # Change depending on the machine:
 DIRECTORY = (

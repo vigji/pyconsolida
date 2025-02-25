@@ -1,6 +1,7 @@
 from pathlib import Path
-import pytest
 from zipfile import ZipFile
+
+import pytest
 
 
 @pytest.fixture

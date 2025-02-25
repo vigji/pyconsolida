@@ -214,9 +214,12 @@ def read_full_budget_cached(filename, sum_fasi=True, tipologie_skip=None, cache=
         [f.exists() for f in [all_fasi_filename, consistency_filename, log_filename]]
     ):
         logging.info(f"Leggo cache da {all_fasi_filename}")
+        loaded_from_cache = True
         # Leggi cache:
         all_fasi_concat = pd.read_pickle(all_fasi_filename)
-        consistency_report = pd.read_pickle(consistency_filename)
+        with open(consistency_filename, "rb") as f:
+            consistency_report = pickle.load(f)
+
         with open(log_filename, "r") as f:
             log_messages = f.readlines()
 
@@ -236,8 +239,9 @@ def read_full_budget_cached(filename, sum_fasi=True, tipologie_skip=None, cache=
         all_fasi_concat, consistency_report, log_messages = _read_full_budget(
             filename, sum_fasi, tipologie_skip
         )
+        loaded_from_cache = False
 
-    if cache:
+    if cache and not loaded_from_cache:
         # Salva con versione dello script e dei file:
         all_fasi_concat.to_pickle(all_fasi_filename)
 

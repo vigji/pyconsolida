@@ -40,9 +40,11 @@ def fix_types(df):
             df.loc[:, k] = df.loc[:, k].apply(fix_codice_costo_alphanum)
         if k == HEADERS["costo_unit"]:
             df.loc[:, k] = df.loc[:, k].apply(
-                lambda x: typ(x.replace(" ", "").replace(",", "."))
-                if type(x) is str
-                else typ(x)
+                lambda x: (
+                    typ(x.replace(" ", "").replace(",", "."))
+                    if type(x) is str
+                    else typ(x)
+                )
             )
         else:
             df.loc[:, k] = df.loc[:, k].astype(typ)
@@ -238,16 +240,14 @@ if __name__ == "__main__":
     # test caching behavior:
     import time
 
-    start = time.time()
-    print(get_repo_version())
-    print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
-    start = time.time()
-    print(get_repo_version())
-    print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
-
-    # test args hash:
-    import numpy as np
     import pandas as pd
+
+    start = time.time()
+    print(get_repo_version())
+    print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
+    start = time.time()
+    print(get_repo_version())
+    print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
 
     df = pd.DataFrame({"a": [1, 2, 3, 1], "b": [4, 5, 6, 7]})
     large_df = pd.DataFrame(
