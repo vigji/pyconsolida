@@ -44,8 +44,9 @@ def get_tabellone_delta(tabellone_df, t_start_date, t_stop_date):
     pd.DataFrame
         Il delta di costi tra le due date.
     """
-    tabellone_df["data"] = tabellone_df["data"].apply(lambda x: x + "-01")
-    tabellone_df["data"] = pd.to_datetime(tabellone_df["data"])
+    if not pd.api.types.is_datetime64_any_dtype(tabellone_df["data"]):
+        tabellone_df["data"] = tabellone_df["data"].apply(lambda x: x + "-01")
+        tabellone_df["data"] = pd.to_datetime(tabellone_df["data"])
 
     in_range = tabellone_df[
         (tabellone_df["data"] >= t_start_date) & (tabellone_df["data"] <= t_stop_date)
