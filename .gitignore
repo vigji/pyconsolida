@@ -138,3 +138,6 @@ pyconsolida-env/
 *.pkl
 *.feather
 *.h5
+
+# ignore macos
+.DS_Store
