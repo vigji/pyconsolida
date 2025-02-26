@@ -19,7 +19,7 @@ def temp_source_data(tmp_path, assets_folder):
         zip_file.extractall(tmp_path)
 
     # Check that the data was extracted successfully
-    data_folder = tmp_path / "cantieri_test"
+    data_folder = tmp_path / "Cantieri_test"
     if not data_folder.exists() or not data_folder.is_dir():
         raise RuntimeError(f"Failed to extract data folder to {data_folder}")
 
