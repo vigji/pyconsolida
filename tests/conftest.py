@@ -38,3 +38,10 @@ def expected_exports_folder():
         )
 
     return expected_exports_folder
+
+
+@pytest.fixture
+def cache_folder(tmp_path):
+    cache_folder = tmp_path / "cache"
+    cache_folder.mkdir(exist_ok=True)
+    return cache_folder

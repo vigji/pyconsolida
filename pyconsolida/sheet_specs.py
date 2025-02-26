@@ -1,6 +1,36 @@
-"""Qui sono descritti i parametri di lettura del file, le conversioni delle stringe,
+"""Qui sono descritti i parametri di lettura del file, le conversioni delle stringhe,
 e il formatting dell'output.
 """
+
+from pathlib import Path
+
+# --------------------------------------------------------------------------------------
+# Filesystem
+# --------------------------------------------------------------------------------------
+data_path_dict = {
+    "vigji": "/Users/vigji/Desktop/Cantieri",
+    "server": "/myshare/Cantieri",
+    "test": Path(__file__).parent.parent / "tests" / "assets" / "cantieri_test.zip",
+}
+
+cache_path_dict = {
+    "vigji": "/Users/vigji/Desktop/cache_dir",
+    "server": "/myshare/home/luigi.petrucco/cache_dir",
+    "test": Path(__file__).parent.parent / "tests" / "assets" / "cache_dir",
+}
+
+# euristics to find machine
+if Path("/Users/vigji").exists():
+    MACHINE = "vigji"
+elif Path("/myshare").exists():
+    MACHINE = "server"
+else:
+    MACHINE = "test"
+
+
+DATA_PATH = data_path_dict[MACHINE]
+CACHE_PATH = cache_path_dict[MACHINE]
+
 
 # --------------------------------------------------------------------------------------
 # Specificazioni foglio di input

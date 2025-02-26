@@ -12,9 +12,14 @@ from pyconsolida.budget_reader_utils import (
     fix_voice_consistency,
     translate_df,
 )
-from pyconsolida.cache_utils import get_args_hash, get_repo_version
+from pyconsolida.cache_utils import (
+    get_args_hash,
+    get_cache_directory,
+    get_repo_version,
+)
 from pyconsolida.df_utils import sum_selected_columns
 from pyconsolida.sheet_specs import (
+    CACHE_PATH,
     CODICE_COSTO_COL,
     EXCLUDED_FASI,
     HEADERS,
@@ -184,20 +189,26 @@ def _read_full_budget(filename, sum_fasi=True, tipologie_skip=None):
 
 
 def read_full_budget_cached(
-    filename, folder_hash, sum_fasi=True, tipologie_skip=None, cache=True
+    filename,
+    folder_hash,
+    sum_fasi=True,
+    tipologie_skip=None,
+    cache=True,
+    cache_root=CACHE_PATH,
 ):
     """Read the full budget from a file, using caching."""
 
-    # log_messages.append(f"Re-importo {filename}, no cache per questa versione di script e dati")
-
     # Define cached filename:
-    CACHE_FOLDERNAME = "cached"
     script_hash = get_repo_version()
     args_hash = get_args_hash(sum_fasi=sum_fasi, tipologie_skip=tipologie_skip)
 
     if cache:
-        cached_folder = filename.parent / CACHE_FOLDERNAME
-        cached_folder.mkdir(exist_ok=True)
+        # This relying on relative path could be slippery depedning on the precise data structure
+        cached_folder = get_cache_directory(
+            filename.parent,
+            data_path=filename.parent.parent.parent.parent,
+            cache_root=cache_root,
+        )
         cached_filename_base = (
             cached_folder
             / f"{filename.stem}_cache_{args_hash}_{folder_hash}_{script_hash}"

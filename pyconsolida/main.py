@@ -10,7 +10,7 @@ from pyconsolida.logging_config import setup_logging
 
 
 def process_tabellone(
-    directory=Path,
+    directory,
     output_dir=None,
     progress_bar=True,
     debug_mode=True,
@@ -28,6 +28,7 @@ def process_tabellone(
     Returns:
         Path to the destination directory
     """
+    directory = Path(directory)
     # timestamp for the folder name:
     tstamp = datetime.now().strftime("%y%m%d-%H%M%S")
 

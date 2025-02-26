@@ -4,6 +4,8 @@ from pathlib import Path
 
 import git
 
+from pyconsolida.sheet_specs import CACHE_PATH, DATA_PATH
+
 
 def _remove_cache_folder(folder: Path):
     for item in folder.glob("**/*"):
@@ -20,7 +22,7 @@ def flush_cache_subfolder(folder: Path):
     _remove_cache_folder(cache_folder)
 
 
-def flush_all_cache(folder: Path):
+def flush_all_cache(folder: Path = CACHE_PATH):
     """Remove all cached data folders and their contents."""
     folder = Path(folder)
 
@@ -66,52 +68,35 @@ def get_args_hash(**kwargs):
     return sha256_hash.hexdigest()[:N_HASH_CHARS]
 
 
+def get_cache_directory(
+    target_subdir: str,
+    data_path: Path = DATA_PATH,
+    cache_root: Path = CACHE_PATH,
+    create_if_missing: bool = True,
+):
+    """Ensure the corresponding cache directory exists."""
+    data_path = Path(data_path).resolve()
+    target_subdir = Path(target_subdir).resolve()
+
+    if not target_subdir.is_relative_to(data_path):
+        print(
+            f"Target subdirectory {target_subdir} is not inside data_path {data_path}"
+        )
+        raise ValueError("Target subdirectory is not inside data_path")
+
+    relative_subdir = target_subdir.relative_to(data_path)
+    cache_dir = Path(cache_root) / relative_subdir / "cached"
+    if create_if_missing:
+        cache_dir.mkdir(parents=True, exist_ok=True)
+    return cache_dir
+
+
 if __name__ == "__main__":
-    import time
 
-    from pyconsolida.budget_reader import read_full_budget_cached
+    # Example usage
+    data_path = "/Users/vigji/Desktop/Cantieri_test"
+    cache_root = "/Users/vigji/Desktop/cache_location"
+    target_subdir = "/Users/vigji/Desktop/Cantieri_test/2024/12_December/1435"
 
-    data_loc = Path("/Users/vigji/Desktop/Cantieri_test")
-    test_file = data_loc / "2023" / "12_Dicembre" / "1434" / "Analisi.xlsx"
-
-    args = {
-        "filename": test_file,
-        "folder_hash": get_folder_hash(test_file),
-        "sum_fasi": False,
-        "tipologie_skip": None,
-        "cache": True,
-    }
-
-    def _time_function(func, **kwargs):
-        """Run a function and return execution time in seconds."""
-        start_time = time.time()
-        func(**kwargs)
-        return time.time() - start_time
-
-    end_time_first_read = _time_function(read_full_budget_cached, **args)
-    end_time_cached = _time_function(read_full_budget_cached, **args)
-
-    flush_cache_subfolder(test_file.parent)
-    end_time_cache_removed = _time_function(read_full_budget_cached, **args)
-
-    new_args = args.copy()
-    new_args["cache"] = False
-    end_time_cache_disabled = _time_function(read_full_budget_cached, **new_args)
-
-    new_args_nosum = args.copy()
-    new_args_nosum["sum_fasi"] = True
-    end_time_nosum = _time_function(read_full_budget_cached, **new_args_nosum)
-
-    end_time_nosum_second_read = _time_function(
-        read_full_budget_cached, **new_args_nosum
-    )
-
-    baseline = end_time_first_read
-    expected_factor = 10
-    assert baseline > end_time_cached * expected_factor
-    assert baseline < end_time_cache_removed * expected_factor
-    assert baseline < end_time_cache_disabled * expected_factor
-    assert baseline < end_time_nosum * expected_factor
-    assert baseline > end_time_nosum_second_read * expected_factor
-
-    # flush_cache_subfolder(test_file.parent)
+    cache_dir = get_cache_directory(target_subdir)
+    print(f"Cache directory created at: {cache_dir}")
