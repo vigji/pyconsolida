@@ -92,39 +92,33 @@ def load_loop_and_concat(
     report_filename=None,
     cache=True,
 ):
-    budgets = []
-    reports = []
+    # Use list comprehension to gather data more efficiently
+    wrapper = tqdm if progress_bar else lambda x: x
+    logging.info(f"Processing {len(folders)} folders...")
+    
+    # Gather all data in one pass
+    results = [
+        read_all_valid_budgets(folder, folders, tipologie_skip=tipologie_skip, cache=cache)
+        for folder in wrapper(folders)
+    ]
+    
+    # Separate budgets and reports, filtering out None values
+    budgets, reports = zip(*results)
+    budgets = [b for b in budgets if b is not None]
+    reports = [r for r in reports if r is not None]
 
-    if progress_bar:
-        wrapper = tqdm
-    else:
-        wrapper = lambda x: x
-
-    for folder in wrapper(folders):
-        logging.info(f"Loading {folder}")
-        budget, rep = read_all_valid_budgets(
-            folder, folders, tipologie_skip=tipologie_skip, cache=cache
-        )
-        if rep is not None:
-            reports.append(rep)
-        
-        budgets.append(budget)
-
-    budgets = pd.concat(budgets, axis=0, ignore_index=True)
-    budgets = budgets[key_sequence]
-
+    # Single concat operations
+    budgets = pd.concat(budgets, axis=0, ignore_index=True)[key_sequence]
     logging.info(f"File consolidato: {len(budgets)} entrate")
 
-    if len(reports) > 0:
+    if reports:
         reports = pd.concat(reports, axis=0, ignore_index=True)
         logging.info(f"Report sul file consolidato: {len(reports)} entrate")
+    else:
+        reports = pd.DataFrame()
 
     if tipologie_fix is not None:
-        fix_tipologie_df(
-            budgets,
-            tipologie_fix,
-            report_filename=report_filename,
-        )
         logging.info("Correggo le tipologie...")
+        fix_tipologie_df(budgets, tipologie_fix, report_filename=report_filename)
 
     return budgets, reports

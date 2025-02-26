@@ -74,5 +74,5 @@ def assert_directory_exports_equal(dir1: Path, dir2: Path) -> None:
 
 assert_directory_exports_equal(
    "/Users/vigji/Desktop/Cantieri_test/exports/expected_export",
-   "/Users/vigji/Desktop/Cantieri_test/exports/exported_250226-104024"
+   "/Users/vigji/Desktop/Cantieri_test/exports/exported_250226-104858"
 )
