@@ -1,0 +1,37 @@
+09:53:16,252 root INFO Lancio estrazione...
+09:53:16,252 root INFO Escludo commesse specificate: ['4004', '9981', '1360', '1445']
+09:53:16,435 root INFO File di correzione tipologie: /Users/vigji/Desktop/Cantieri_test/tipologie_fix.xlsx
+09:53:16,441 root INFO File di tipologie da saltare: /Users/vigji/Desktop/Cantieri_test/tipologie_fix.xlsx
+09:53:16,444 root INFO Cartelle da analizzare trovate: 14
+09:53:16,467 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2023/12_Dicembre/1434
+09:53:16,539 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2023/12_Dicembre/1434/Analisi.xlsx
+09:53:17,175 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2023/12_Dicembre/1436
+09:53:17,189 root INFO No file validi in /Users/vigji/Desktop/Cantieri_test/2023/12_Dicembre/1436
+09:53:17,189 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2023/12_Dicembre/1438
+09:53:17,209 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2023/12_Dicembre/1438/Analisi.xls
+09:53:17,749 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2023/12_Dicembre/1450
+09:53:17,763 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2023/12_Dicembre/1450/Analisi.xls
+09:53:18,252 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2024/01_Gennaio/1434
+09:53:18,268 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2024/01_Gennaio/1434/Analisi.xlsx
+09:53:18,827 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2024/01_Gennaio/1438
+09:53:19,83 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2024/01_Gennaio/1438/Analisi.xls
+09:53:19,726 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2024/01_Gennaio/1455
+09:53:19,766 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2024/01_Gennaio/1455/Analisi.xls
+09:53:20,83 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2024/01_Gennaio/1461
+09:53:20,105 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2024/01_Gennaio/1461/Analisi.xlsx
+09:53:22,14 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2024/01_Gennaio/1462
+09:53:22,166 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2024/01_Gennaio/1462/Analisi.xls
+09:53:22,978 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2024/02_Febbraio/1434
+09:53:22,990 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2024/02_Febbraio/1434/Analisi.xlsx
+09:53:23,593 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2024/02_Febbraio/1438
+09:53:23,770 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2024/02_Febbraio/1438/Analisi.xls
+09:53:24,402 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2024/02_Febbraio/1455
+09:53:24,451 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2024/02_Febbraio/1455/Analisi.xls
+09:53:24,798 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2024/02_Febbraio/1461
+09:53:24,813 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2024/02_Febbraio/1461/Analisi.xlsx
+09:53:26,715 root INFO Loading /Users/vigji/Desktop/Cantieri_test/2024/02_Febbraio/1462
+09:53:27,23 root INFO Reading from scratch /Users/vigji/Desktop/Cantieri_test/2024/02_Febbraio/1462/Analisi.xls
+09:53:27,838 root INFO File consolidato: 6358 entrate
+09:53:27,838 root INFO Report sul file consolidato: 9 entrate
+09:53:45,351 root INFO Correggo le tipologie...
+09:53:45,354 root INFO Calcolo delta per intervallo da2023-12-01-a-2024-02-01

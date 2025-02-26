@@ -48,7 +48,6 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
 
     files = find_all_files(path)
     commessa = path.name
-    # mese_raw = path.parent.name[:-1]
     data = data_from_commessa_folder(path)
 
     # Tutte le cartelle di questa commessa:
@@ -60,13 +59,9 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
     all_months = sorted(all_months)
 
     mesi_da_inizio = months_between_dates(data, all_months[0])
-    # print(all_months)
-    # print(mesi_da_inizio)
 
-    # mese = int(mese_raw.replace(" ", "_").split("_")[-2])
-    # anno = int(path.parent.parent.name)
     mese, anno = data.month, data.year
-    file_hash = get_folder_hash(path)
+    folder_hash = get_folder_hash(path)
     data = f"{anno}-{mese:02d}"
 
     loaded = []
@@ -75,7 +70,7 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
     # File multipli: ogni tanto si trovano eg SPE_GEN in un file separato.
     for file in files:
         fasi, cons_report = read_full_budget_cached(
-            file, sum_fasi=False, tipologie_skip=tipologie_skip, cache=cache
+            file, folder_hash, sum_fasi=False, tipologie_skip=tipologie_skip, cache=cache
         )
 
         loaded.append(fasi)
@@ -85,8 +80,6 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
     try:
         loaded = pd.concat(loaded, axis=0, ignore_index=True)
     except ValueError:
-        # raise RuntimeError(f"No valid files found in {path}")
-        # print(f"No file validi in {path}")
         logging.info(f"No file validi in {path}")
         return None, None
 
@@ -95,7 +88,7 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
     loaded["anno"] = anno
     loaded["data"] = data
     loaded["mesi-da-inizio"] = mesi_da_inizio
-    loaded["file-hash"] = file_hash
+    loaded["file-hash"] = folder_hash
 
     if len(reports) > 0:
         reports = pd.concat(reports, axis=0, ignore_index=True)
@@ -128,17 +121,12 @@ def load_loop_and_concat(
 
     for folder in wrapper(folders):
         logging.info(f"Loading {folder}")
-        # try:
         budget, rep = read_all_valid_budgets(
             folder, folders, tipologie_skip=tipologie_skip, cache=cache
         )
-        # except ValueError as e:
-        #     if "Nessuna voce costo valida in file" in str(e):
-        #         logging.info(f"Nessuna voce costo valida per: {folder}; salto")
-        #         continue
-        #     continue
         if rep is not None:
             reports.append(rep)
+        
         budgets.append(budget)
 
     budgets = pd.concat(budgets, axis=0, ignore_index=True)

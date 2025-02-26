@@ -15,6 +15,7 @@ from pyconsolida.delta import get_multiple_date_intervals, get_tabellone_delta
 # Change depending on the machine:
 DIRECTORY = (
     Path("/Users/vigji/Desktop/Cantieri_test")
+    # Path("/Users/vigji/Library/CloudStorage/OneDrive-I.co.p.Spa/Cantieri")
     if Path("/Users/vigji").exists()
     else Path("/myshare/cantieri")
 )
@@ -35,7 +36,7 @@ if OUTPUT_DIR is None:
     dest_dir = DIRECTORY / "exports" / f"exported_{tstamp}"
 else:
     dest_dir = OUTPUT_DIR / f"exported_{tstamp}"
-
+print(f"Output directory: {dest_dir}")
 dest_dir.mkdir(exist_ok=True, parents=True)
 
 # Remove all handlers associated with the root logger object.

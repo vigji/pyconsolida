@@ -185,7 +185,7 @@ def _read_full_budget(filename, sum_fasi=True, tipologie_skip=None):
     return all_fasi_concat, consistency_report, log_messages
 
 
-def read_full_budget_cached(filename, sum_fasi=True, tipologie_skip=None, cache=True):
+def read_full_budget_cached(filename, folder_hash, sum_fasi=True, tipologie_skip=None, cache=True):
     """Read the full budget from a file, using caching."""
 
     # log_messages.append(f"Re-importo {filename}, no cache per questa versione di script e dati")
@@ -193,7 +193,6 @@ def read_full_budget_cached(filename, sum_fasi=True, tipologie_skip=None, cache=
     # Define cached filename:
     CACHE_FOLDERNAME = "cached"
     script_hash = get_repo_version()
-    folder_hash = get_folder_hash(filename.parent)
     args_hash = get_args_hash(sum_fasi=sum_fasi, tipologie_skip=tipologie_skip)
 
     if cache:
