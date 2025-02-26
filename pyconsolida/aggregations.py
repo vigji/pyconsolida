@@ -33,7 +33,9 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
 
     # Pre-filter relevant folders once
     commessa_folders = [f for f in path_list if f.name == commessa]
-    all_months = sorted(data_from_commessa_folder(folder) for folder in commessa_folders)
+    all_months = sorted(
+        data_from_commessa_folder(folder) for folder in commessa_folders
+    )
 
     mesi_da_inizio = months_between_dates(data, all_months[0])
     mese, anno = data.month, data.year
@@ -47,7 +49,11 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
     # Process files one by one without accumulating lists
     for file in files:
         fasi, cons_report = read_full_budget_cached(
-            file, folder_hash, sum_fasi=False, tipologie_skip=tipologie_skip, cache=cache
+            file,
+            folder_hash,
+            sum_fasi=False,
+            tipologie_skip=tipologie_skip,
+            cache=cache,
         )
         if fasi is not None:
             if loaded is None:
@@ -55,7 +61,7 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
             else:
                 # Use DataFrame.append which is more efficient for single DataFrame
                 loaded = loaded._append(fasi, ignore_index=True)
-        
+
         if len(cons_report) > 0:
             report_df = pd.DataFrame(cons_report)
             if reports is None:
@@ -83,6 +89,7 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
 
     return loaded, reports
 
+
 def load_loop_and_concat(
     folders,
     key_sequence=KEY_SEQUENCE,
@@ -95,13 +102,15 @@ def load_loop_and_concat(
     # Use list comprehension to gather data more efficiently
     wrapper = tqdm if progress_bar else lambda x: x
     logging.info(f"Processing {len(folders)} folders...")
-    
+
     # Gather all data in one pass
     results = [
-        read_all_valid_budgets(folder, folders, tipologie_skip=tipologie_skip, cache=cache)
+        read_all_valid_budgets(
+            folder, folders, tipologie_skip=tipologie_skip, cache=cache
+        )
         for folder in wrapper(folders)
     ]
-    
+
     # Separate budgets and reports, filtering out None values
     budgets, reports = zip(*results)
     budgets = [b for b in budgets if b is not None]

@@ -1,13 +1,18 @@
-import pandas as pd
 from pathlib import Path
+
+import pandas as pd
+
 from pyconsolida.main import process_tabellone
+
 
 def test_something(temp_source_data):
     # temp_source_data is the Path to the extracted files
     assert (temp_source_data / "cantieri_test").exists()
 
+
 def assert_dataframe_equal(file1_path: Path, file2_path: Path) -> None:
     """Compare two files (Excel or pickle) for identical content using pandas."""
+
     def read_file(path: Path) -> pd.DataFrame:
         suffix = path.suffix.lower()
         if suffix in [".xlsx", ".xls"]:
@@ -27,7 +32,9 @@ def assert_dataframe_equal(file1_path: Path, file2_path: Path) -> None:
                 df[col].dtype == "object"
                 and df[col].head().astype(str).str.startswith("{").all()
             ):
-                df[col] = df[col].apply(lambda x: set(eval(x)) if isinstance(x, str) else x)
+                df[col] = df[col].apply(
+                    lambda x: set(eval(x)) if isinstance(x, str) else x
+                )
 
     try:
         pd.testing.assert_frame_equal(
@@ -41,12 +48,13 @@ def assert_dataframe_equal(file1_path: Path, file2_path: Path) -> None:
         print(f"Assertion failed for {file1_path} and {file2_path}")
         raise e
 
+
 def assert_directory_exports_equal(dir1: Path, dir2: Path) -> None:
     """Compare all matching files (by name without timestamp) in two directories."""
 
     dir1 = Path(dir1)
     dir2 = Path(dir2)
-    
+
     def get_base_name(path: Path) -> str:
         """Get filename without timestamp prefix (removes YYMMDD-HHMMSS_)."""
         name = path.name
@@ -56,19 +64,25 @@ def assert_directory_exports_equal(dir1: Path, dir2: Path) -> None:
                 "YYMMDD-HHMMSS_filename.extension"
             )
         return name[14:]
-    
+
     # Get all Excel and pickle files from both directories
     supported_suffixes = {".xlsx", ".xls", ".pkl", ".pickle"}
-    files1 = {get_base_name(f): f for f in dir1.iterdir() 
-              if f.is_file() and f.suffix.lower() in supported_suffixes}
-    files2 = {get_base_name(f): f for f in dir2.iterdir() 
-              if f.is_file() and f.suffix.lower() in supported_suffixes}
-    
+    files1 = {
+        get_base_name(f): f
+        for f in dir1.iterdir()
+        if f.is_file() and f.suffix.lower() in supported_suffixes
+    }
+    files2 = {
+        get_base_name(f): f
+        for f in dir2.iterdir()
+        if f.is_file() and f.suffix.lower() in supported_suffixes
+    }
+
     # Find common base names
     common_names = set(files1.keys()) & set(files2.keys())
     if not common_names:
         raise ValueError(f"No matching files found between {dir1} and {dir2}")
-    
+
     # Compare each pair of files
     for base_name in sorted(common_names):
         assert_dataframe_equal(files1[base_name], files2[base_name])
@@ -81,12 +95,12 @@ def test_main(temp_source_data):
         output_dir=None,
         progress_bar=True,
         debug_mode=True,
-        )
+    )
 
 
 if __name__ == "__main__":
 
     assert_directory_exports_equal(
-    "/Users/vigji/Desktop/Cantieri_test/exports/expected_export",
-    "/Users/vigji/Desktop/Cantieri_test/exports/exported_250226-105856"
+        "/Users/vigji/Desktop/Cantieri_test/exports/expected_export",
+        "/Users/vigji/Desktop/Cantieri_test/exports/exported_250226-105856",
     )

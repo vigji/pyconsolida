@@ -1,5 +1,5 @@
-from pathlib import Path
 import logging
+from pathlib import Path
 
 
 def setup_logging(log_path: Path) -> None:

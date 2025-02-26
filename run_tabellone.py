@@ -2,8 +2,10 @@
 
 The input folder (specified as DIRECTORY) has to be organized in the following way:
 """
-from pyconsolida.main import process_tabellone
+
 from pathlib import Path
+
+from pyconsolida.main import process_tabellone
 
 if __name__ == "__main__":
     # Configuration

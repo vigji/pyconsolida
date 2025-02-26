@@ -16,13 +16,13 @@ def process_tabellone(
     debug_mode: bool = False,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Process tabellone data and generate delta reports.
-    
+
     Args:
         directory: Base directory containing the data
         output_dir: Optional output directory, defaults to directory/exports
         progress_bar: Whether to show progress bar
         debug_mode: Whether to run in debug mode
-    
+
     Returns:
         tuple of (budget, reports) DataFrames
     """
@@ -74,11 +74,13 @@ def process_tabellone(
         interval_name = f"da{start.date()}-a-{stop.date()}"
         logging.info(f"Calcolo delta per intervallo {interval_name}")
         delta_df = get_tabellone_delta(budget, start, stop)
-        delta_df.to_excel(str(dest_dir / f"{tstamp}_delta_tabellone_{interval_name}.xlsx"))
+        delta_df.to_excel(
+            str(dest_dir / f"{tstamp}_delta_tabellone_{interval_name}.xlsx")
+        )
 
     if len(reports) > 0:
         reports.to_excel(str(dest_dir / f"{tstamp}_voci-costo_fix_report.xlsx"))
 
     tipologie_fix.to_excel(str(dest_dir / f"{tstamp}_tipologie-fix.xlsx"))
-    
+
     return budget, reports
