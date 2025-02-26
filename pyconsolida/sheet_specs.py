@@ -5,6 +5,17 @@ e il formatting dell'output.
 # --------------------------------------------------------------------------------------
 # Specificazioni foglio di input
 # --------------------------------------------------------------------------------------
+PATTERNS = [
+    "*nalis*",
+    "*RO-RO*",
+    "*ACC.QUADRO*",
+    "*SPE_GENE*",
+    "*SPE_BRANCH*",
+    "*NALIS*",
+]
+
+SUFFIXES = [".xls", ".xlsx", ".xlsm"]
+
 
 CODICE_COSTO_COL = 0  # indice colonna con codice costo
 TIPOLOGIA_IDX = 1  # indice colonna con tipologie costo
@@ -50,6 +61,8 @@ EXPECTED_COLS = []
 
 EXCLUDED_FASI = ["0-SIT&PROG(2022-24)_", "0-SIT&PROG(2022-24)_prova"]
 
+WORKS_TO_EXCLUDE = ["4004", "9981", "1360", "1445"]
+
 # --------------------------------------------------------------------------------------
 # Controlli post-lettura
 # --------------------------------------------------------------------------------------
@@ -83,3 +96,22 @@ SHEET_COL_SEQ = [
 SHEET_COL_SEQ_FASE = [
     HEADERS["fase"],
 ] + SHEET_COL_SEQ
+
+# sequence of keys in the final table:
+KEY_SEQUENCE = [
+    "commessa",
+    "fase",
+    "anno",
+    "mese",
+    "data",
+    "mesi-da-inizio",
+    "codice",
+    "tipologia",
+    "voce",
+    "costo u.",
+    "u.m.",
+    "quantita",
+    "imp. unit.",
+    "imp.comp.",
+    "file-hash",
+]

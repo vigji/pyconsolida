@@ -18,12 +18,22 @@ def assert_dataframe_equal(file1_path: Path, file2_path: Path) -> None:
 
     df1 = read_file(file1_path)
     df2 = read_file(file2_path)
+
+    # Convert string-represented sets back to actual sets for comparison
+    for df in [df1, df2]:
+        for col in df.columns:
+            if (
+                df[col].dtype == "object"
+                and df[col].head().astype(str).str.startswith("{").all()
+            ):
+                df[col] = df[col].apply(lambda x: set(eval(x)) if isinstance(x, str) else x)
+
     try:
         pd.testing.assert_frame_equal(
             df1,
             df2,
-        check_dtype=False,  # Skip dtype checking as Excel may import numbers differently
-        check_index_type=False,  # Skip index type checking
+            check_dtype=False,  # Skip dtype checking as Excel may import numbers differently
+            check_index_type=False,  # Skip index type checking
             check_column_type=False,  # Skip column type checking
         )
     except AssertionError as e:
@@ -64,5 +74,5 @@ def assert_directory_exports_equal(dir1: Path, dir2: Path) -> None:
 
 assert_directory_exports_equal(
    "/Users/vigji/Desktop/Cantieri_test/exports/expected_export",
-   "/Users/vigji/Desktop/Cantieri_test/exports/exported_250226-100856"
+   "/Users/vigji/Desktop/Cantieri_test/exports/exported_250226-104024"
 )

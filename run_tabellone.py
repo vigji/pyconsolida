@@ -11,6 +11,8 @@ import pandas as pd
 
 from pyconsolida.aggregations import load_loop_and_concat
 from pyconsolida.delta import get_multiple_date_intervals, get_tabellone_delta
+from pyconsolida.logging_config import setup_logging
+from pyconsolida.sheet_specs import WORKS_TO_EXCLUDE
 
 # Change depending on the machine:
 DIRECTORY = (
@@ -21,14 +23,14 @@ DIRECTORY = (
 )
 PROGRESS_BAR = True
 OUTPUT_DIR = None  # Path("/Users/vigji/Desktop/exports")
-# LOAD_PICKLE = True
+DEBUG_MODE = True
 
 
 # timestamp for the folder name:
 tstamp = datetime.now().strftime("%y%m%d-%H%M%S")
 
 # Get all intervals from user
-date_intervals = get_multiple_date_intervals()
+date_intervals = get_multiple_date_intervals(DEBUG_MODE)
 
 # Create destination directory using first interval for naming
 # first_start, first_stop = date_intervals[0]
@@ -39,41 +41,12 @@ else:
 print(f"Output directory: {dest_dir}")
 dest_dir.mkdir(exist_ok=True, parents=True)
 
-# Remove all handlers associated with the root logger object.
-for handler in logging.root.handlers[:]:
-    logging.root.removeHandler(handler)
+setup_logging(dest_dir / f"log_{tstamp}.txt")
 
-logging.basicConfig(
-    filename=dest_dir / f"log_{tstamp}.txt",
-    filemode="a",
-    format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
-    datefmt="%H:%M:%S",
-    level=logging.INFO,
-)
-
-logging.info("Lancio estrazione...")
-
-# sequence of keys in the final table:
-key_sequence = [
-    "commessa",
-    "fase",
-    "anno",
-    "mese",
-    "data",
-    "mesi-da-inizio",
-    "codice",
-    "tipologia",
-    "voce",
-    "costo u.",
-    "u.m.",
-    "quantita",
-    "imp. unit.",
-    "imp.comp.",
-    "file-hash",
-]
+logging.info(f"Lancio estrazione, export directory: {dest_dir}")
 
 # IDs of works to exclude:
-to_exclude = ["4004", "9981", "1360", "1445"]
+to_exclude = WORKS_TO_EXCLUDE 
 logging.info(f"Escludo commesse specificate: {to_exclude}")
 
 tipologie_fix = pd.read_excel(DIRECTORY / "tipologie_fix.xlsx")
@@ -93,7 +66,6 @@ logging.info(f"Cartelle da analizzare trovate: {len(all_folders)}")
 # Main loop:
 budget, reports = load_loop_and_concat(
     all_folders,
-    key_sequence,
     tipologie_fix=tipologie_fix,
     tipologie_skip=tipologie_skip,
     progress_bar=PROGRESS_BAR,

@@ -11,7 +11,6 @@ from pyconsolida.budget_reader_utils import (
     fix_types,
     fix_voice_consistency,
     get_args_hash,
-    get_folder_hash,
     get_repo_version,
     translate_df,
 )

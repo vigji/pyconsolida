@@ -10,17 +10,8 @@ from pyconsolida.folder_read_utils import (
     months_between_dates,
 )
 from pyconsolida.posthoc_fix_utils import fix_tipologie_df
+from pyconsolida.sheet_specs import KEY_SEQUENCE, PATTERNS, SUFFIXES
 
-PATTERNS = [
-    "*nalis*",
-    "*RO-RO*",
-    "*ACC.QUADRO*",
-    "*SPE_GENE*",
-    "*SPE_BRANCH*",
-    "*NALIS*",
-]
-
-SUFFIXES = [".xls", ".xlsx", ".xlsm"]
 logging.info(f"Patterns files analisi: {PATTERNS}")
 logging.info(f"Formati files analisi: {SUFFIXES}")
 
@@ -94,7 +85,7 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
 
 def load_loop_and_concat(
     folders,
-    key_sequence,
+    key_sequence=KEY_SEQUENCE,
     tipologie_fix=None,
     tipologie_skip=None,
     progress_bar=True,

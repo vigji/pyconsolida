@@ -3,8 +3,12 @@ from datetime import datetime
 import pandas as pd
 
 
-def get_multiple_date_intervals():
+def get_multiple_date_intervals(debug_mode=False):
     """Get multiple start-stop date intervals from user input."""
+
+    if debug_mode:
+        return [(datetime(2023, 12, 1), datetime(2024, 2, 1))]
+
     intervals = []
     while True:
         start = input_data("inizio")
