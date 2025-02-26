@@ -1,4 +1,5 @@
 import warnings
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -8,7 +9,11 @@ from numba.core.errors import NumbaPendingDeprecationWarning
 warnings.simplefilter("ignore", category=NumbaPendingDeprecationWarning)
 
 
-def fix_tipologie_df(input_df, tipologie_fix_df, report_filename=None):
+def fix_tipologie_df(
+    input_df: pd.DataFrame,
+    tipologie_fix_df: pd.DataFrame,
+    report_filename: Optional[str] = None,
+) -> None:
     # Make everything lowercase and replace nans with not-searchable string:
     to_change = isinlist(input_df, tipologie_fix_df)
 
@@ -50,25 +55,25 @@ def fix_tipologie_df(input_df, tipologie_fix_df, report_filename=None):
         prev = i
 
 
-def isnan(val):
+def isnan(val: Union[str, float, int]) -> bool:
     if isinstance(val, str):
         return False
     else:
         return np.isnan(val)
 
 
-def replacenan(val):
+def replacenan(val: Union[str, float, int]) -> str:
     if isnan(val):
         return "!@#$#$^"
     else:
-        return str(val)  # ensure this is string
+        return str(val)
 
 
-def format_check(check_list):
+def format_check(check_list: List[Union[str, float, int]]) -> Tuple[str, ...]:
     return tuple([replacenan(i).lower() for i in check_list])
 
 
-def format_to_check(check_list):
+def format_to_check(check_list: List[Union[str, float, int]]) -> List[str]:
     # print(check_list)
     # try:
     return list([replacenan(i).lower() for i in check_list])
@@ -76,20 +81,32 @@ def format_to_check(check_list):
 
 
 @njit
-def _isinlist(voci, tipologie, check_list, exclude_list, tipologie_list):
-    """Fast match of occourrences satifying a condition.
+def _isinlist(
+    voci: List[str],
+    tipologie: List[str],
+    check_list: Tuple[str, ...],
+    exclude_list: Tuple[str, ...],
+    tipologie_list: Tuple[str, ...],
+) -> np.ndarray:
+    """Fast match of occurrences satisfying a condition.
 
     Parameters
     ----------
-    voci
-    tipologie
-    check_list
-    exclude_list
-    tipologie_list
+    voci : List[str]
+        List of strings to search in
+    tipologie : List[str]
+        List of types to match
+    check_list : Tuple[str, ...]
+        Tuple of strings to check for
+    exclude_list : Tuple[str, ...]
+        Tuple of strings to exclude
+    tipologie_list : Tuple[str, ...]
+        Tuple of types to match against
 
     Returns
     -------
-
+    np.ndarray
+        Boolean array of matches
     """
     matches_table = np.full((len(voci), len(check_list)), False)
 
@@ -110,14 +127,14 @@ def _isinlist(voci, tipologie, check_list, exclude_list, tipologie_list):
 
 
 def isinlist(
-    input_df,
-    tipologie_fix_df,
-    voce_key="voce",
-    tipologia_key="tipologia",
-    se_contiene_key="se contiene",
-    se_non_contiene_key="e non contiene",
-    se_tipologia_key="da",
-):
+    input_df: pd.DataFrame,
+    tipologie_fix_df: pd.DataFrame,
+    voce_key: str = "voce",
+    tipologia_key: str = "tipologia",
+    se_contiene_key: str = "se contiene",
+    se_non_contiene_key: str = "e non contiene",
+    se_tipologia_key: str = "da",
+) -> np.ndarray:
     # print(tipologie_fix_df)
     return _isinlist(
         format_to_check(input_df[voce_key]),
@@ -129,8 +146,12 @@ def isinlist(
 
 
 def check_consistency_of_matches(
-    matches_mat, tested_series, condition_df, mapped_label_key, raise_error=True
-):
+    matches_mat: np.ndarray,
+    tested_series: pd.Series,
+    condition_df: pd.DataFrame,
+    mapped_label_key: str,
+    raise_error: bool = True,
+) -> None:
     # Ensures that no ambiguous category conversions are defined:
     all_matches = np.argwhere(matches_mat)
     duplex_conversions = np.argwhere(np.sum(matches_mat, 1) > 1).flatten()

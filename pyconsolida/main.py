@@ -10,11 +10,11 @@ from pyconsolida.logging_config import setup_logging
 
 
 def process_tabellone(
-    directory: Path,
-    output_dir: Path | None = None,
-    progress_bar: bool = True,
-    debug_mode: bool = True,
-    cache: bool = True,
+    directory=Path,
+    output_dir=None,
+    progress_bar=True,
+    debug_mode=True,
+    cache=True,
 ) -> Path:
     """Process tabellone data and generate delta reports.
 
