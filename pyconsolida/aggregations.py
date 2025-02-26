@@ -69,7 +69,7 @@ def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
             else:
                 reports = reports._append(report_df, ignore_index=True)
 
-    if loaded is None:
+    if loaded is None or loaded.empty:
         logging.info(f"No file validi in {path}")
         return None, None
 

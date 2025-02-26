@@ -92,7 +92,6 @@ def get_cache_directory(
 
 
 if __name__ == "__main__":
-
     # Example usage
     data_path = "/Users/vigji/Desktop/Cantieri_test"
     cache_root = "/Users/vigji/Desktop/cache_location"
