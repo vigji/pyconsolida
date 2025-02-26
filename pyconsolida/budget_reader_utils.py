@@ -194,30 +194,3 @@ def fix_voice_consistency(df):
     # except ValueError:
 
     return df, consistence_report
-
-
-if __name__ == "__main__":
-    # test caching behavior:
-    import time
-
-    import pandas as pd
-
-    start = time.time()
-    print(get_repo_version())
-    print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
-    start = time.time()
-    print(get_repo_version())
-    print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
-
-    df = pd.DataFrame({"a": [1, 2, 3, 1], "b": [4, 5, 6, 7]})
-    large_df = pd.DataFrame(
-        {"a": np.full(1000000, dtype=str, fill_value="a"), "b": np.random.rand(1000000)}
-    )
-    large_matrix = np.random.rand(1000, 1000)
-
-    start = time.time()
-    print(get_args_hash(a=1, df=df, matrix=large_matrix))
-    print(f"Time taken: {(time.time() - start)*1000:.2f}ms")
-    start = time.time()
-    print(get_args_hash(a=1, df=df, matrix=large_matrix))
-    print(f"Time taken: {(time.time() - start)*1000:.2f}ms")

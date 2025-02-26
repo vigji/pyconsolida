@@ -1,7 +1,8 @@
-from pathlib import Path
 import hashlib
-import git
 from functools import lru_cache
+from pathlib import Path
+
+import git
 
 
 def _remove_cache_folder(folder: Path):
@@ -67,17 +68,20 @@ def get_args_hash(**kwargs):
 
 if __name__ == "__main__":
     import time
+
     from pyconsolida.budget_reader import read_full_budget_cached
+
     data_loc = Path("/Users/vigji/Desktop/Cantieri_test")
     test_file = data_loc / "2023" / "12_Dicembre" / "1434" / "Analisi.xlsx"
 
-    args = {            
+    args = {
         "filename": test_file,
         "folder_hash": get_folder_hash(test_file),
         "sum_fasi": False,
         "tipologie_skip": None,
         "cache": True,
     }
+
     def _time_function(func, **kwargs):
         """Run a function and return execution time in seconds."""
         start_time = time.time()
@@ -98,7 +102,9 @@ if __name__ == "__main__":
     new_args_nosum["sum_fasi"] = True
     end_time_nosum = _time_function(read_full_budget_cached, **new_args_nosum)
 
-    end_time_nosum_second_read = _time_function(read_full_budget_cached, **new_args_nosum)
+    end_time_nosum_second_read = _time_function(
+        read_full_budget_cached, **new_args_nosum
+    )
 
     baseline = end_time_first_read
     expected_factor = 10
@@ -107,6 +113,5 @@ if __name__ == "__main__":
     assert baseline < end_time_cache_disabled * expected_factor
     assert baseline < end_time_nosum * expected_factor
     assert baseline > end_time_nosum_second_read * expected_factor
-
 
     # flush_cache_subfolder(test_file.parent)
