@@ -23,4 +23,18 @@ def temp_source_data(tmp_path, assets_folder):
     if not data_folder.exists() or not data_folder.is_dir():
         raise RuntimeError(f"Failed to extract data folder to {data_folder}")
 
-    return tmp_path
+    assert (data_folder / "tipologie_fix.xlsx").exists()
+    assert (data_folder / "tipologie_skip.xlsx").exists()
+
+    return data_folder
+
+
+@pytest.fixture
+def expected_exports_folder():
+    expected_exports_folder = Path(__file__).parent / "assets" / "expected_export"
+    if not expected_exports_folder.exists() or not expected_exports_folder.is_dir():
+        raise RuntimeError(
+            f"Expected exports folder not found: {expected_exports_folder}"
+        )
+
+    return expected_exports_folder

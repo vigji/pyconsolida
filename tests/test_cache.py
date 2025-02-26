@@ -15,14 +15,7 @@ def _time_function(func, **kwargs):
 
 @pytest.fixture
 def test_args(temp_source_data):
-    test_file = (
-        temp_source_data
-        / "cantieri_test"
-        / "2023"
-        / "12_Dicembre"
-        / "1434"
-        / "Analisi.xlsx"
-    )
+    test_file = temp_source_data / "2023" / "12_Dicembre" / "1434" / "Analisi.xlsx"
     return {
         "filename": test_file,
         "folder_hash": get_folder_hash(test_file),

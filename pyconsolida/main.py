@@ -14,6 +14,7 @@ def process_tabellone(
     output_dir: Path | None = None,
     progress_bar: bool = True,
     debug_mode: bool = False,
+    cache: bool = True,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Process tabellone data and generate delta reports.
 
@@ -62,7 +63,7 @@ def process_tabellone(
         tipologie_skip=tipologie_skip,
         progress_bar=progress_bar,
         report_filename=str(dest_dir / f"{tstamp}_report_fixed_tipologie.xlsx"),
-        cache=True,
+        cache=cache,
     )
 
     # Save debug files
@@ -83,4 +84,4 @@ def process_tabellone(
 
     tipologie_fix.to_excel(str(dest_dir / f"{tstamp}_tipologie-fix.xlsx"))
 
-    return budget, reports
+    return dest_dir
