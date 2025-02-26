@@ -1,8 +1,6 @@
 import logging
-import tempfile
 from datetime import datetime
 from pathlib import Path
-from zipfile import ZipFile
 
 import pandas as pd
 
@@ -11,14 +9,30 @@ from pyconsolida.delta import get_multiple_date_intervals, get_tabellone_delta
 from pyconsolida.logging_config import setup_logging
 
 
-def _process_tabellone_core(
+def process_tabellone(
     directory: Path,
     output_dir: Path | None = None,
     progress_bar: bool = True,
+    debug_mode: bool = True,
     cache: bool = True,
 ) -> Path:
+    """Process tabellone data and generate delta reports.
+
+    Args:
+        directory: Base directory containing the data
+        output_dir: Optional output directory, defaults to directory/exports
+        progress_bar: Whether to show progress bar
+        debug_mode: Whether to run in debug mode
+        cache: Whether to use caching
+
+    Returns:
+        Path to the destination directory
+    """
     # timestamp for the folder name:
     tstamp = datetime.now().strftime("%y%m%d-%H%M%S")
+
+    # Get all intervals from user
+    date_intervals = get_multiple_date_intervals(debug_mode)
 
     # Create destination directory
     if output_dir is None:
@@ -58,7 +72,7 @@ def _process_tabellone_core(
     reports.to_pickle(str(dest_dir / f"{tstamp}_reports.pickle"))
 
     # Generate delta for each interval
-    for start, stop in get_multiple_date_intervals(True):
+    for start, stop in date_intervals:
         interval_name = f"da{start.date()}-a-{stop.date()}"
         logging.info(f"Calcolo delta per intervallo {interval_name}")
         delta_df = get_tabellone_delta(budget, start, stop)
@@ -72,42 +86,6 @@ def _process_tabellone_core(
     tipologie_fix.to_excel(str(dest_dir / f"{tstamp}_tipologie-fix.xlsx"))
 
     return dest_dir
-
-
-def process_tabellone(
-    directory: Path | None = None,
-    output_dir: Path | None = None,
-    progress_bar: bool = True,
-    debug_mode: bool = True,
-    cache: bool = True,
-) -> Path:
-    """Process tabellone data and generate delta reports.
-
-    Args:
-        directory: Base directory containing the data
-        output_dir: Optional output directory, defaults to directory/exports
-        progress_bar: Whether to show progress bar
-        debug_mode: Whether to run in debug mode
-        cache: Whether to use caching
-
-    Returns:
-        Path to the destination directory
-    """
-    if debug_mode and directory is None:
-        with tempfile.TemporaryDirectory() as temp_dir:
-            temp_dir = Path(temp_dir)
-            assets_folder = Path(__file__).parent.parent / "tests" / "assets"
-            with ZipFile(assets_folder / "cantieri_test.zip") as zip_file:
-                zip_file.extractall(temp_dir)
-            # Run twice to test cache
-            _process_tabellone_core(
-                temp_dir / "Cantieri_test", output_dir, progress_bar, cache
-            )
-            _process_tabellone_core(
-                temp_dir / "Cantieri_test", output_dir, progress_bar, cache
-            )
-    else:
-        return _process_tabellone_core(directory, output_dir, progress_bar, cache)
 
 
 if __name__ == "__main__":

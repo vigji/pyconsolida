@@ -16,7 +16,7 @@ if __name__ == "__main__":
     )
     PROGRESS_BAR = True
     OUTPUT_DIR = None  # Path("/Users/vigji/Desktop/exports")
-    DEBUG_MODE = True
+    DEBUG_MODE = False
 
     # Run main process
     budget, reports = process_tabellone(
@@ -24,4 +24,5 @@ if __name__ == "__main__":
         output_dir=OUTPUT_DIR,
         progress_bar=PROGRESS_BAR,
         debug_mode=DEBUG_MODE,
+        cache=True,
     )
