@@ -1,5 +1,6 @@
 import pandas as pd
 from pathlib import Path
+from pyconsolida.main import process_tabellone
 
 def test_something(temp_source_data):
     # temp_source_data is the Path to the extracted files
@@ -72,7 +73,20 @@ def assert_directory_exports_equal(dir1: Path, dir2: Path) -> None:
     for base_name in sorted(common_names):
         assert_dataframe_equal(files1[base_name], files2[base_name])
 
-assert_directory_exports_equal(
-   "/Users/vigji/Desktop/Cantieri_test/exports/expected_export",
-   "/Users/vigji/Desktop/Cantieri_test/exports/exported_250226-104858"
-)
+
+def test_main(temp_source_data):
+    # Run main process
+    budget, reports = process_tabellone(
+        directory=temp_source_data / "cantieri_test",
+        output_dir=None,
+        progress_bar=True,
+        debug_mode=True,
+        )
+
+
+if __name__ == "__main__":
+
+    assert_directory_exports_equal(
+    "/Users/vigji/Desktop/Cantieri_test/exports/expected_export",
+    "/Users/vigji/Desktop/Cantieri_test/exports/exported_250226-105856"
+    )

@@ -1,8 +1,3 @@
-"""This script extract all data used during one year of activity.
-
-The input folder (specified as DIRECTORY) has to be organized in the following way:
-"""
-
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -10,99 +5,80 @@ from pathlib import Path
 import pandas as pd
 
 from pyconsolida.aggregations import load_loop_and_concat
-from pyconsolida.delta import get_tabellone_delta, input_data
+from pyconsolida.delta import get_multiple_date_intervals, get_tabellone_delta
+from pyconsolida.logging_config import setup_logging
 
-t_start = input_data("inizio")
-t_stop = input_data("fine")
 
-assert t_start < t_stop, "La data di inizio deve essere precedente a quella di fine."
-assert (
-    t_start >= datetime(2021, 1, 1) and t_start <= datetime.now()
-), "La data di inizio deve essere compresa tra 01.2021 e ora"
-assert (
-    t_stop >= datetime(2021, 1, 1) and t_stop <= datetime.now()
-), "La data di fine deve essere compresa tra 01.2021 e ora"
+def process_tabellone(
+    directory: Path,
+    output_dir: Path | None = None,
+    progress_bar: bool = True,
+    debug_mode: bool = False,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Process tabellone data and generate delta reports.
+    
+    Args:
+        directory: Base directory containing the data
+        output_dir: Optional output directory, defaults to directory/exports
+        progress_bar: Whether to show progress bar
+        debug_mode: Whether to run in debug mode
+    
+    Returns:
+        tuple of (budget, reports) DataFrames
+    """
+    # timestamp for the folder name:
+    tstamp = datetime.now().strftime("%y%m%d-%H%M%S")
 
-DIRECTORY = Path("/myshare/cantieri")
-PROGRESS_BAR = True
+    # Get all intervals from user
+    date_intervals = get_multiple_date_intervals(debug_mode)
 
-# timestamp for the filename:
-tstamp = datetime.now().strftime("%y%m%d-%H%M%S")
+    # Create destination directory
+    if output_dir is None:
+        dest_dir = directory / "exports" / f"exported_{tstamp}"
+    else:
+        dest_dir = output_dir / f"exported_{tstamp}"
+    print(f"Output directory: {dest_dir}")
+    dest_dir.mkdir(exist_ok=True, parents=True)
 
-dest_dir = (
-    DIRECTORY / "exports" / f"exported_da{t_start.date()}-a-{t_stop.date()}_{tstamp}"
-)
-dest_dir.mkdir(exist_ok=True, parents=True)
+    setup_logging(dest_dir / f"log_{tstamp}.txt")
+    logging.info(f"Lancio estrazione, export directory: {dest_dir}")
 
-# Remove all handlers associated with the root logger object.
-for handler in logging.root.handlers[:]:
-    logging.root.removeHandler(handler)
+    # Load configuration files
+    tipologie_fix = pd.read_excel(directory / "tipologie_fix.xlsx")
+    tipologie_skip = pd.read_excel(directory / "tipologie_skip.xlsx")
+    logging.info(f"File di correzione tipologie: {directory / 'tipologie_fix.xlsx'}")
+    logging.info(f"File di tipologie da saltare: {directory / 'tipologie_fix.xlsx'}")
 
-logging.basicConfig(
-    filename=dest_dir / f"log_{tstamp}.txt",
-    filemode="a",
-    format="%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s",
-    datefmt="%H:%M:%S",
-    level=logging.INFO,
-)
+    # Find folders with latest formatting
+    all_folders = list(directory.glob("202[1-9]/[0-1][0-9]_*/*"))
+    all_folders += list(directory.glob("202[1-9]/*_[0-1][0-9]*/[0-9][0-9][0-9][0-9]*"))
+    all_folders = sorted([f for f in all_folders if f.is_dir()])
+    logging.info(f"Cartelle da analizzare trovate: {len(all_folders)}")
 
-logging.info("Lancio estrazione...")
+    # Main processing
+    budget, reports = load_loop_and_concat(
+        all_folders,
+        tipologie_fix=tipologie_fix,
+        tipologie_skip=tipologie_skip,
+        progress_bar=progress_bar,
+        report_filename=str(dest_dir / f"{tstamp}_report_fixed_tipologie.xlsx"),
+        cache=True,
+    )
 
-# logger = logging.getLogger("deltaDec")
-# sequence of keys in the final table:
-key_sequence = [
-    "commessa",
-    "fase",
-    "anno",
-    "mese",
-    "data",
-    "mesi-da-inizio",
-    "codice",
-    "tipologia",
-    "voce",
-    "costo u.",
-    "u.m.",
-    "quantita",
-    "imp. unit.",
-    "imp.comp.",
-    "file-hash",
-]
+    # Save debug files
+    budget.to_pickle(str(dest_dir / f"{tstamp}_tabellone.pickle"))
+    reports.to_pickle(str(dest_dir / f"{tstamp}_reports.pickle"))
 
-# IDs of works to exclude:
-to_exclude = ["4004", "9981", "1360", "1445"]
-logging.info(f"Escludo commesse specificate: {to_exclude}")
+    # Generate delta for each interval
+    for start, stop in date_intervals:
+        interval_name = f"da{start.date()}-a-{stop.date()}"
+        logging.info(f"Calcolo delta per intervallo {interval_name}")
+        delta_df = get_tabellone_delta(budget, start, stop)
+        delta_df.to_excel(str(dest_dir / f"{tstamp}_delta_tabellone_{interval_name}.xlsx"))
 
-tipologie_fix = pd.read_excel(DIRECTORY / "tipologie_fix.xlsx")
-logging.info(f"File di correzione tipologie: {DIRECTORY / 'tipologie_fix.xlsx'}")
+    if len(reports) > 0:
+        reports.to_excel(str(dest_dir / f"{tstamp}_voci-costo_fix_report.xlsx"))
 
-tipologie_skip = pd.read_excel(DIRECTORY / "tipologie_skip.xlsx")
-logging.info(f"File di tipologie da saltare: {DIRECTORY / 'tipologie_fix.xlsx'}")
-
-all_folders = list(DIRECTORY.glob("202[1-9]/[0-1][0-9]_*/*"))
-# 2021 e 2022 formattazione diversa:
-all_folders += list(DIRECTORY.glob("202[1-9]/*_[0-1][0-9]*/[0-9][0-9][0-9][0-9]*"))
-all_folders = sorted([f for f in all_folders if f.is_dir()])
-logging.info(f"Cartelle da analizzare trovate: {len(all_folders)}")
-
-budget, reports = load_loop_and_concat(
-    all_folders,
-    key_sequence,
-    tipologie_fix=tipologie_fix,
-    tipologie_skip=tipologie_skip,
-    progress_bar=PROGRESS_BAR,
-    report_filename=str(dest_dir / f"{tstamp}_report_fixed_tipologie.xlsx"),
-    cache=True,
-)
-
-# Uncomment for debugging
-# budget.to_excel(str(dest_dir / f"{tstamp}_tabellone.xlsx"))
-budget.to_pickle(str(dest_dir / f"{tstamp}_tabellone.pickle"))
-
-# Genera delta tabellone:
-delta_df = get_tabellone_delta(budget, t_start, t_stop)
-delta_df.to_excel(str(dest_dir / f"{tstamp}_delta_tabellone.xlsx"))
-
-if len(reports) > 0:
-    reports.to_excel(str(dest_dir / f"{tstamp}_voci-costo_fix_report.xlsx"))
-
-tipologie_fix.to_excel(str(dest_dir / f"{tstamp}_tipologie-fix.xlsx"))
+    tipologie_fix.to_excel(str(dest_dir / f"{tstamp}_tipologie-fix.xlsx"))
+    
+    return budget, reports
