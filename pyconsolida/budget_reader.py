@@ -218,7 +218,6 @@ def read_full_budget_cached(filename, folder_hash, sum_fasi=True, tipologie_skip
         all_fasi_concat = pd.read_pickle(all_fasi_filename)
         with open(consistency_filename, "rb") as f:
             consistency_report = pickle.load(f)
-
         with open(log_filename, "r") as f:
             log_messages = f.readlines()
 
@@ -238,6 +237,7 @@ def read_full_budget_cached(filename, folder_hash, sum_fasi=True, tipologie_skip
         all_fasi_concat, consistency_report, log_messages = _read_full_budget(
             filename, sum_fasi, tipologie_skip
         )
+
         loaded_from_cache = False
 
     if cache and not loaded_from_cache:

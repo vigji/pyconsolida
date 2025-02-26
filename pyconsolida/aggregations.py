@@ -35,72 +35,62 @@ def find_all_files(path):
 
 
 def read_all_valid_budgets(path, path_list, tipologie_skip=None, cache=True):
-    """Read valid budget files from a folder.
-
-    Parameters
-    ----------
-    path : Path obj
-
-    Returns
-    -------
-        (pd.DataFrame, pd.Dataframe): the loaded data and report on the extractions.
-    """
-
+    """Read valid budget files from a folder."""
     files = find_all_files(path)
     commessa = path.name
     data = data_from_commessa_folder(path)
 
-    # Tutte le cartelle di questa commessa:
-    all_months = [
-        data_from_commessa_folder(folder)
-        for folder in path_list
-        if folder.name == commessa
-    ]
-    all_months = sorted(all_months)
+    # Pre-filter relevant folders once
+    commessa_folders = [f for f in path_list if f.name == commessa]
+    all_months = sorted(data_from_commessa_folder(folder) for folder in commessa_folders)
 
     mesi_da_inizio = months_between_dates(data, all_months[0])
-
     mese, anno = data.month, data.year
     folder_hash = get_folder_hash(path)
     data = f"{anno}-{mese:02d}"
 
-    loaded = []
-    reports = []
+    # Initialize empty DataFrames with correct columns
+    loaded = None
+    reports = None
 
-    # File multipli: ogni tanto si trovano eg SPE_GEN in un file separato.
+    # Process files one by one without accumulating lists
     for file in files:
         fasi, cons_report = read_full_budget_cached(
             file, folder_hash, sum_fasi=False, tipologie_skip=tipologie_skip, cache=cache
         )
-
-        loaded.append(fasi)
+        if fasi is not None:
+            if loaded is None:
+                loaded = fasi
+            else:
+                # Use DataFrame.append which is more efficient for single DataFrame
+                loaded = loaded._append(fasi, ignore_index=True)
+        
         if len(cons_report) > 0:
-            reports.append(pd.DataFrame(cons_report))
+            report_df = pd.DataFrame(cons_report)
+            if reports is None:
+                reports = report_df
+            else:
+                reports = reports._append(report_df, ignore_index=True)
 
-    try:
-        loaded = pd.concat(loaded, axis=0, ignore_index=True)
-    except ValueError:
+    if loaded is None:
         logging.info(f"No file validi in {path}")
         return None, None
 
-    loaded["commessa"] = commessa
-    loaded["mese"] = mese
-    loaded["anno"] = anno
-    loaded["data"] = data
-    loaded["mesi-da-inizio"] = mesi_da_inizio
-    loaded["file-hash"] = folder_hash
+    # Add metadata columns
+    loaded.loc[:, "commessa"] = commessa
+    loaded.loc[:, "mese"] = mese
+    loaded.loc[:, "anno"] = anno
+    loaded.loc[:, "data"] = data
+    loaded.loc[:, "mesi-da-inizio"] = mesi_da_inizio
+    loaded.loc[:, "file-hash"] = folder_hash
 
-    if len(reports) > 0:
-        reports = pd.concat(reports, axis=0, ignore_index=True)
-        reports["commessa"] = commessa
-        fasi["mese"] = mese
-        fasi["anno"] = anno
-        fasi["data"] = data
-    else:
-        reports = None
+    if reports is not None:
+        reports.loc[:, "commessa"] = commessa
+        reports.loc[:, "mese"] = mese
+        reports.loc[:, "anno"] = anno
+        reports.loc[:, "data"] = data
 
     return loaded, reports
-
 
 def load_loop_and_concat(
     folders,
