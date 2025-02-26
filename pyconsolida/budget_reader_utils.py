@@ -1,10 +1,6 @@
-import hashlib
 import logging
 import warnings
-from functools import lru_cache
-from pathlib import Path
 
-import git
 import numpy as np
 
 from pyconsolida.sheet_specs import (
@@ -198,42 +194,6 @@ def fix_voice_consistency(df):
     # except ValueError:
 
     return df, consistence_report
-
-
-@lru_cache(maxsize=1)
-def get_repo_version():
-    N_HASH_CHARS = 6
-
-    repo = git.Repo(search_parent_directories=True)
-    sha = repo.head.object.hexsha
-    return sha[:N_HASH_CHARS]
-
-
-@lru_cache(maxsize=1)
-def get_folder_hash(folder_path):
-    """Compute SHA-256 hash of all files in a folder using pathlib."""
-    N_HASH_CHARS = 10
-    sha256_hash = hashlib.sha256()
-    # Create a Path object for the folder
-    folder = Path(folder_path)
-    # Iterate over all files in the folder, including subfolders
-    for file_path in sorted(folder.rglob("*")):
-        # escludo cache e empty folders:
-        if file_path.is_file() and file_path.parent.name != "cached":
-            # Hash each file
-            with open(file_path, "rb") as f:
-                for byte_block in iter(lambda: f.read(4096), b""):
-                    sha256_hash.update(byte_block)
-    return sha256_hash.hexdigest()[:N_HASH_CHARS]
-
-
-def get_args_hash(**kwargs):
-    """Compute SHA-256 hash of all arguments."""
-    N_HASH_CHARS = 10
-    sha256_hash = hashlib.sha256()
-    for key, value in kwargs.items():
-        sha256_hash.update(f"{key}:{value}".encode("utf-8"))
-    return sha256_hash.hexdigest()[:N_HASH_CHARS]
 
 
 if __name__ == "__main__":

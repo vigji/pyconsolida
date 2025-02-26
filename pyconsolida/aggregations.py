@@ -4,7 +4,7 @@ import pandas as pd
 from tqdm import tqdm
 
 from pyconsolida.budget_reader import read_full_budget_cached
-from pyconsolida.budget_reader_utils import get_folder_hash
+from pyconsolida.cache_utils import get_folder_hash
 from pyconsolida.folder_read_utils import (
     data_from_commessa_folder,
     months_between_dates,
