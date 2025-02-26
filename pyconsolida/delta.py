@@ -133,7 +133,10 @@ def get_tabellone_delta(tabellone_df, t_start_date, t_stop_date):
     da_df = start_al_df.loc[:, all_data_cols]
     a_df = end_al_df.loc[:, all_data_cols]
 
-    delta_df = a_df.loc[:, delta_cols].fillna(0) - da_df.loc[:, delta_cols].fillna(0)
+    # Fix for FutureWarning: explicitly handle dtypes when filling NA values
+    da_filled = da_df.loc[:, delta_cols].fillna(0).astype(float)
+    a_filled = a_df.loc[:, delta_cols].fillna(0).astype(float)
+    delta_df = a_filled - da_filled
 
     a_df.columns = [f"A: {col}" for col in a_df.columns]
     da_df.columns = [f"DA: {col}" for col in da_df.columns]
