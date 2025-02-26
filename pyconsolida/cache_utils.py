@@ -45,13 +45,19 @@ def get_repo_version():
 def get_folder_hash(folder_path):
     """Compute SHA-256 hash of all files in a folder using pathlib."""
     N_HASH_CHARS = 10
+    SUFFIX_TO_EXCLUDE = [".pdf", ".docx", ".doc", ".msg"]
     sha256_hash = hashlib.sha256()
     # Create a Path object for the folder
     folder = Path(folder_path)
-    # Iterate over all files in the folder, including subfolders
-    for file_path in sorted(folder.rglob("*")):
+    # Iterate over all files in the folder, excluding subfolders
+    # It used to be including subfolders, but it was slow and not really needed
+    for file_path in sorted(folder.glob("*")):
         # escludo cache e empty folders:
-        if file_path.is_file() and file_path.parent.name != "cached":
+        if (
+            file_path.is_file()
+            and file_path.parent.name != "cached"
+            and file_path.suffix not in SUFFIX_TO_EXCLUDE
+        ):
             # Hash each file
             with open(file_path, "rb") as f:
                 for byte_block in iter(lambda: f.read(4096), b""):
@@ -89,13 +95,3 @@ def get_cache_directory(
     if create_if_missing:
         cache_dir.mkdir(parents=True, exist_ok=True)
     return cache_dir
-
-
-if __name__ == "__main__":
-    # Example usage
-    data_path = "/Users/vigji/Desktop/Cantieri_test"
-    cache_root = "/Users/vigji/Desktop/cache_location"
-    target_subdir = "/Users/vigji/Desktop/Cantieri_test/2024/12_December/1435"
-
-    cache_dir = get_cache_directory(target_subdir)
-    print(f"Cache directory created at: {cache_dir}")
