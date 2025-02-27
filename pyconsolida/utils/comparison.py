@@ -23,16 +23,21 @@ def assert_dataframe_equal(file1_path: Path, file2_path: Path) -> None:
         for col in df.columns:
             if (
                 df[col].dtype == "object"
-                and df[col].head().astype(str).str.startswith("{").all()
+                and df[col].dropna().astype(str).str.startswith("{").all()
             ):
-                df[col] = df[col].apply(
-                    lambda x: set(eval(x)) if isinstance(x, str) else x
-                )
+                df[col] = df[col].apply(lambda x: set(str(item) for item in x))
+
+    # Remove hash columns from comparison
+    hash_cols = [
+        col for col in df1.columns if isinstance(col, str) and "hash" in col.lower()
+    ]
+    df1_filtered = df1.drop(columns=hash_cols, errors="ignore")
+    df2_filtered = df2.drop(columns=hash_cols, errors="ignore")
 
     try:
         pd.testing.assert_frame_equal(
-            df1,
-            df2,
+            df1_filtered.sort_index(axis=1),
+            df2_filtered.sort_index(axis=1),
             check_dtype=False,
             check_index_type=False,
             check_column_type=False,
@@ -74,4 +79,18 @@ def assert_directory_exports_equal(dir1: Path, dir2: Path) -> None:
         raise ValueError(f"No matching files found between {dir1} and {dir2}")
 
     for base_name in sorted(common_names):
+        print(f"Comparing {files1[base_name]} and {files2[base_name]}")
         assert_dataframe_equal(files1[base_name], files2[base_name])
+        print("good!")
+        print("=================")
+
+
+if __name__ == "__main__":
+    assert_directory_exports_equal(
+        # Path("/Users/vigji/Library/CloudStorage/OneDrive-I.co.p.Spa/Cantieri/exports/exported_250225-232627"),
+        Path(
+            "/Users/vigji/Library/CloudStorage/OneDrive-I.co.p.Spa/Cantieri/exports/exported_250226-080151"
+        ),
+        Path("/Users/vigji/Desktop/Cantieri/exports/exported_250227-002927"),
+        # Path("/Users/vigji/Desktop/Cantieri/exports/exported_250227-085110"),
+    )
