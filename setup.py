@@ -11,7 +11,7 @@ with open("README.md") as f:
 
 setup(
     name="pyconsolida",
-    version="1.0.2",
+    version="1.0.3",
     description="Aggregatore dati da budget cantiere I.CO.P",
     install_requires=[
         "pandas>=1.3.0",
