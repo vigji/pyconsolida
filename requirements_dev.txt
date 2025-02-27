@@ -5,4 +5,5 @@ coverage
 pre-commit
 black
 flake8
+bump2version
 isort
