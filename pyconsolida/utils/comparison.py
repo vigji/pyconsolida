@@ -33,11 +33,13 @@ def assert_dataframe_equal(file1_path: Path, file2_path: Path) -> None:
     ]
     df1_filtered = df1.drop(columns=hash_cols, errors="ignore")
     df2_filtered = df2.drop(columns=hash_cols, errors="ignore")
+    print(df1_filtered.index)
+    print(df2_filtered.index)
 
     try:
         pd.testing.assert_frame_equal(
-            df1_filtered.sort_index(axis=1),
-            df2_filtered.sort_index(axis=1),
+            df1_filtered.sort_index(),
+            df2_filtered.sort_index(),
             check_dtype=False,
             check_index_type=False,
             check_column_type=False,
