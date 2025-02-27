@@ -18,7 +18,7 @@ setup(
         "numpy>=1.20.0",
         "numba>=0.53.0",
         "openpyxl>=3.0.0",
-        # Add other dependencies
+        "tqdm"
     ],
     long_description=long_description,
     long_description_content_type="text/markdown",
