@@ -9,7 +9,7 @@ from pathlib import Path
 # --------------------------------------------------------------------------------------
 data_path_dict = {
     "vigji": "/Users/vigji/Desktop/Cantieri",
-    "server": "/myshare/Cantieri",
+    "server": "/myshare/cantieri",
     "test": Path(__file__).parent.parent / "tests" / "assets" / "cantieri_test.zip",
 }
 
