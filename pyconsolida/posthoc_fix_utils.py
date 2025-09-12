@@ -13,13 +13,14 @@ def fix_tipologie_df(
     input_df: pd.DataFrame,
     tipologie_fix_df: pd.DataFrame,
     report_filename: Optional[str] = None,
+    raise_error: bool = True,
 ) -> None:
     # Make everything lowercase and replace nans with not-searchable string:
     to_change = isinlist(input_df, tipologie_fix_df)
 
     # Ensures that no ambiguous category conversions are defined:
     check_consistency_of_matches(
-        to_change, input_df["voce"], tipologie_fix_df, mapped_label_key="a"
+        to_change, input_df["voce"], tipologie_fix_df, mapped_label_key="a", raise_error=raise_error
     )
 
     # Once this is safe, we can just use the matches interchangably:
