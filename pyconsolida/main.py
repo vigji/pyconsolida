@@ -15,6 +15,7 @@ def process_tabellone(
     progress_bar=True,
     debug_mode=True,
     cache=True,
+    raise_error_on_ambiguous_match=True,
 ) -> Path:
     """Process tabellone data and generate delta reports.
 
@@ -66,6 +67,7 @@ def process_tabellone(
         progress_bar=progress_bar,
         report_filename=str(dest_dir / f"{tstamp}_report_fixed_tipologie.xlsx"),
         cache=cache,
+        raise_error=raise_error_on_ambiguous_match,
     )
 
     # Save debug files

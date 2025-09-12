@@ -24,4 +24,5 @@ if __name__ == "__main__":
         progress_bar=PROGRESS_BAR,
         debug_mode=DEBUG_MODE,
         cache=True,
+        raise_error_on_ambiguous_match=False,
     )

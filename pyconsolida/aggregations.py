@@ -98,6 +98,7 @@ def load_loop_and_concat(
     progress_bar=True,
     report_filename=None,
     cache=True,
+    raise_error=True,
 ):
     # Use list comprehension to gather data more efficiently
     wrapper = tqdm if progress_bar else lambda x: x
@@ -128,6 +129,6 @@ def load_loop_and_concat(
 
     if tipologie_fix is not None:
         logging.info("Correggo le tipologie...")
-        fix_tipologie_df(budgets, tipologie_fix, report_filename=report_filename)
+        fix_tipologie_df(budgets, tipologie_fix, report_filename=report_filename, raise_error=raise_error)
 
     return budgets, reports
