@@ -162,6 +162,16 @@ def _read_full_budget(filename, sum_fasi=True, tipologie_skip=None):
 
                 all_fasi.append(costi_fase)
 
+    # Nessun foglio valido (es. file "Analisi" che non e' un budget): ritorna vuoto
+    # invece di far crashare l'intera estrazione.
+    if len(all_fasi) == 0:
+        log_messages.append(
+            rf"Nessun foglio fase valido in file {filename}; file ignorato"
+        )
+        logging.warning(f"Nessun foglio fase valido in file {filename}; file ignorato")
+        columns = SHEET_COL_SEQ if sum_fasi else SHEET_COL_SEQ_FASE
+        return pd.DataFrame(columns=columns), [], log_messages
+
     # Aggreghiamo per cantiere per sommare voci costo identiche:
     all_fasi_concat = pd.concat(all_fasi, axis=0, ignore_index=True)
 
